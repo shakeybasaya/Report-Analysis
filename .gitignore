@@ -1,0 +1,24 @@
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+db.sqlite3
+
+# Environment/secrets
+.env
+
+# PyCharm
+.idea/
+
+# OS
+.DS_Store
