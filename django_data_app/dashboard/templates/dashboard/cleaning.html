@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Cleaning — QickSnap</title>
+
+    <style>
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+
+         /* Arranges the navigation bar items in a row. */
+        .navbar {
+            display: flex; align-items: center; gap: 26px;
+            padding: 12px 30px; background: #ffffff; border-bottom: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+
+         /* Arranges the logo and brand name beside each other. */
+        .brand-block { display: flex; align-items: center; gap: 10px; margin-right: 10px; }
+
+        .logo-mark {
+            width: 30px; height: 30px; background: #111827; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center; color: #14b8a6;
+        }
+
+        .brand { font-weight: 800; font-size: 15.5px; color: #111827; white-space: nowrap; }
+
+        .nav-pills { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
+
+        .nav-pill {
+            display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 6px;
+            font-size: 13px; font-weight: 600; text-decoration: none; color: #6b7280;
+        }
+
+        .nav-pill:hover { color: #111827; }
+
+        .nav-pill.active { background: #ffffff; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+        .nav-pill .badge {
+            background: #0f766e; color: #fff; font-size: 11px; font-weight: 700;
+            border-radius: 10px; padding: 1px 7px; margin-left: 2px;
+        }
+
+        .navbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+        .file-badge {
+            display: flex; align-items: center; gap: 7px; border: 1px solid #d1fae5; background: #f0fdfa;
+            color: #0f766e; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px; white-space: nowrap;
+        }
+
+        .file-badge .file-rows { color: #6b7280; font-weight: 500; }
+
+        .user-badge {
+            display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #374151; white-space: nowrap;
+        }
+
+        .user-badge strong { color: #111827; }
+
+        .logout-link {
+            color: #9ca3af; background: none; border: none; padding: 0;
+            font-size: inherit; font-family: inherit; font-weight: 600; cursor: pointer;
+        }
+
+        .logout-link:hover { color: #dc2626; }
+
+        .container { max-width: 1200px; margin: 26px auto; padding: 0 24px 60px; }
+
+        .page-head { margin-bottom: 20px; }
+
+        .page-head h1 { font-size: 20px; margin: 0 0 4px; color: #111827; }
+
+        .page-head p { font-size: 13px; color: #6b7280; margin: 0; }
+
+        /* ---- Flash messages (the notices shown after an action, like "Removed 3 duplicate rows") ---- */
+
+        .flash {
+            padding: 12px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 14px;
+            border: 1px solid; font-weight: 500;
+        }
+        /* Green for success. */
+        .flash.success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+        /* Blue for information. */
+        .flash.info    { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+        /* Yellow for warnings. */
+        .flash.warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+        /* Red for errors. */
+        .flash.error   { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+        /* ---- Stat cards (the four boxes: Rows, Columns, Duplicate Rows, Missing Values) ---- */
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; }
+
+        .stat-card h3 { margin: 0; font-size: 12.5px; color: #6b7280; font-weight: 600; }
+
+        .stat-card p { font-size: 22px; font-weight: 800; margin: 6px 0 0; color: #111827; }
+
+        /* If there is a problem (duplicates or missing values), show the number in orange. */
+        .stat-card.bad p { color: #b45309; }
+
+        /* If there is no problem, show the number in green. */
+        .stat-card.good p { color: #0f766e; }
+
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+
+        .card-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 16px; flex-wrap: wrap; margin-bottom: 14px;
+        }
+
+        .card h2 { font-size: 15px; margin: 0 0 4px; color: #111827; display: flex; align-items: center; gap: 8px; }
+
+        .card h3 { font-size: 13px; margin: 18px 0 8px; color: #111827; }
+
+        .card p.sub { font-size: 12.5px; color: #6b7280; margin: 0; max-width: 640px; line-height: 1.55; }
+
+        .pill { font-size: 11.5px; font-weight: 700; border-radius: 10px; padding: 2px 9px; }
+
+        /* Yellow version of the bubble, used for warnings. */
+        .pill.warn { background: #fef3c7; color: #92400e; }
+
+        /* The green "all good" message line, for example "No duplicate rows found." */
+        .ok-line { font-size: 13.5px; color: #166534; background: #f0fdf4; border-radius: 8px; padding: 12px 14px; }
+
+        .clean-card { text-align: center; padding: 50px 24px; }
+
+        .clean-icon {
+            width: 56px; height: 56px; border-radius: 14px; background: #d1fae5; color: #0f766e;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+        }
+
+        /* The "Your data is clean!" heading: centered and larger. */
+        .clean-card h2 { justify-content: center; font-size: 19px; margin-bottom: 8px; }
+
+        .clean-card p { font-size: 14px; color: #6b7280; margin: 0 0 22px; }
+
+        /* ---- Tables ---- */
+        .table-scroll { max-height: 320px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12.5px; white-space: nowrap; }
+
+        th, td { padding: 9px 12px; border-bottom: 1px solid #eef0f2; text-align: left; }
+
+        thead th { position: sticky; top: 0; background: #f9fafb; color: #374151; font-weight: 700; z-index: 1; }
+
+        td.row-no { color: #9ca3af; font-weight: 600; }
+
+        /* Cells with missing data are highlighted yellow, with orange italic text. */
+        td.missing-cell { background: #fef3c7; color: #b45309; font-style: italic; }
+
+        p.note { font-size: 12px; color: #9ca3af; margin: 8px 0 0; }
+
+        /* ---- Buttons ---- */
+        .fill-btn {
+            border: none; background: #0f766e; color: #fff; font-size: 13px; font-weight: 700;
+            padding: 9px 16px; border-radius: 7px; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .fill-btn:hover { background: #0b5c56; }
+
+        .outline-btn {
+            border: 1px solid #d1d5db; background: #fff; color: #374151; font-size: 13px; font-weight: 600;
+            padding: 9px 16px; border-radius: 7px; cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .outline-btn:hover { background: #f9fafb; }
+
+        /* ---- Missing-value options (Option 1 and Option 2 boxes) ---- */
+        .option-box { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; margin-top: 14px; }
+
+        .option-box h4 { margin: 0 0 4px; font-size: 13.5px; color: #111827; }
+
+        .option-box p { margin: 0 0 12px; font-size: 12.5px; color: #6b7280; line-height: 1.5; }
+
+        .fill-table select, .fill-table input[type="text"] {
+            padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 12.5px; background: #fff; color: #111827; font-family: inherit;
+        }
+
+        .fill-table select:focus, .fill-table input[type="text"]:focus {
+            outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
+        }
+
+        .fill-table td { vertical-align: middle; }
+
+        .fill-actions { margin-top: 14px; }
+
+        .custom-editor {
+            margin-top: 14px; padding: 14px 16px; border: 1px solid #99f6e4;
+            background: #f0fdfa; border-radius: 8px;
+        }
+
+        .custom-editor h5 { margin: 0 0 4px; font-size: 13px; color: #0f766e; }
+
+        .custom-editor p.note { margin: 0 0 10px; }
+
+        .custom-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px;
+            max-height: 320px; overflow: auto; padding-right: 4px;
+        }
+
+        .custom-cell { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: #4b5563; font-weight: 600; }
+
+        .custom-cell input {
+            padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 12.5px; background: #fff; font-family: inherit; color: #111827;
+        }
+
+        .custom-cell input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.12); }
+
+        /* Puts the "Continue without cleaning" button on the right side. */
+        .bottom-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+
+        /* ---- "Continue without cleaning" warning (the pop-up window) ---- */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45);
+            align-items: center; justify-content: center; z-index: 100; padding: 20px;
+        }
+
+        .modal-panel {
+            background: #fff; border-radius: 12px; width: 100%; max-width: 460px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.18); border: 1px solid #e5e7eb; padding: 24px;
+        }
+
+        .warn-icon {
+            width: 40px; height: 40px; border-radius: 10px; background: #fef3c7; color: #b45309;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+        }
+
+        .modal-panel h3 { margin: 0 0 6px; font-size: 16px; color: #111827; }
+
+        .modal-panel p { margin: 0 0 10px; font-size: 13px; color: #4b5563; line-height: 1.55; }
+
+        .modal-panel ul { margin: 0 0 18px; padding-left: 18px; font-size: 13px; color: #374151; line-height: 1.6; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+    </style>
+</head>
+
+<body>
+
+<!-- Creates the navigation bar at the top of the page. -->
+<nav class="navbar">
+    <div class="brand-block">
+        <div class="logo-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 20V11M12 20V4M18 20v-6"/></svg>
+        </div>
+        <span class="brand">QuickSnap</span>
+    </div>
+
+    <!-- The group of menu links (Landing, Import, Cleaning, Analysis, Report, History). -->
+    <div class="nav-pills">
+        <!-- Link to the Landing page. The url tag inside href asks Django for the real web address of the page named "landing". -->
+        <a href="{% url 'landing' %}" class="nav-pill">
+            <!-- A small house icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Landing
+        </a>
+        <!-- Link to the Import page. -->
+        <a href="{% url 'import_data' %}" class="nav-pill">
+            <!-- An upload arrow icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V3M8 7l4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Import
+        </a>
+        <!-- Link to the Cleaning page. The extra class "active" highlights it because we are on this page right now. -->
+        <a href="{% url 'data_cleaning' %}" class="nav-pill active">
+            <!-- A circle with a check mark icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+            Cleaning
+        </a>
+        <!-- Link to the Analysis (visualization) page. -->
+        <a href="{% url 'visualization' %}" class="nav-pill">
+            <!-- A line chart icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+            Analysis
+        </a>
+        <!-- Link to the Report Builder page. -->
+        <a href="{% url 'report_builder' %}" class="nav-pill">
+            <!-- A document icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Report
+            <!-- Only show the number bubble if report_count is more than 0 (there are charts in the report). -->
+            {% if report_count %}<span class="badge">{{ report_count }}</span>{% endif %}
+        </a>
+        <!-- Link to the Report History page. -->
+        <a href="{% url 'report_history' %}" class="nav-pill">
+            <!-- A clock icon. -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            History
+        </a>
+    </div>
+
+    <!-- The right side of the navbar: file name and user info. -->
+    <div class="navbar-right">
+        <!-- Only show the file label if the user has uploaded a dataset. -->
+        {% if dataset %}
+        <div class="file-badge">
+            <!-- A small file icon. -->
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <!-- Shows the dataset's file name and how many rows it has. -->
+            {{ dataset.name }} <span class="file-rows">({{ row_count }} rows)</span>
+        </div>
+        <!-- End of the "if a dataset exists" check. -->
+        {% endif %}
+        <!-- The box showing who is logged in. -->
+        <div class="user-badge">
+            <!-- Shows the logged-in user's username. -->
+            <strong>{{ request.user.username }}</strong>
+            <!-- A form that sends a POST request to log the user out when the button is clicked. -->
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                <!-- A hidden security code Django requires on every form, so other websites cannot trick users into submitting it. -->
+                {% csrf_token %}
+                <!-- The Log-out button. -->
+                <button type="submit" class="logout-link">Log out</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<!-- The main content area of the page. -->
+<div class="container">
+
+    <!-- The page title and short description. -->
+    <div class="page-head">
+        <h1>Data Cleaning</h1>
+        <p>Check your dataset for duplicate rows and missing values before you start visualizing it.</p>
+    </div>
+
+    <!-- Show each notice message sent by the Python code (success, warning, error...). -->
+    {% for message in messages %}
+        <!-- message.tags is the type (success, info, warning, error), which picks the color. -->
+        <div class="flash {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    <!-- If the user has not uploaded any dataset yet... -->
+    {% if no_dataset %}
+
+        <!-- ...show a message with a link to the Import page. -->
+        <div class="card" style="text-align:center; color:#6b7280; font-size:13.5px;">
+            There's no dataset to clean yet. <a href="{% url 'import_data' %}" style="color:#0f766e; font-weight:600;">Import a dataset</a> first.
+        </div>
+
+    <!-- Otherwise (a dataset exists), show the cleaning tools. -->
+    {% else %}
+
+        <!-- The four summary boxes at the top. -->
+        <div class="stats">
+            <!-- Total number of rows. -->
+            <div class="stat-card"><h3>Rows</h3><p>{{ row_count }}</p></div>
+            <!-- Total number of columns. -->
+            <div class="stat-card"><h3>Columns</h3><p>{{ column_count }}</p></div>
+            <!-- Duplicate count. The class becomes "bad" (orange) if there are duplicates, or "good" (green) if none. -->
+            <div class="stat-card {% if duplicate_count %}bad{% else %}good{% endif %}"><h3>Duplicate Rows</h3><p>{{ duplicate_count }}</p></div>
+            <!-- Missing value count, with the same orange/green logic. -->
+            <div class="stat-card {% if missing_cell_count %}bad{% else %}good{% endif %}"><h3>Missing Values</h3><p>{{ missing_cell_count }}</p></div>
+        </div>
+
+        <!-- If the data has no duplicates and no missing values... -->
+        {% if is_clean %}
+
+            <!-- ...show a big "all clean" card. -->
+            <div class="card clean-card">
+                <div class="clean-icon">
+                    <!-- A large circle with a check mark icon. -->
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
+                </div>
+                <h2>Your data is clean!</h2>
+                <p>No duplicate rows or missing values were found. You may now proceed to the data visualization.</p>
+                <!-- A button that goes to the Analysis page. -->
+                <a href="{% url 'visualization' %}" class="fill-btn">
+                    Proceed to Data Visualization
+                    <!-- A right arrow icon. -->
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+
+        <!-- Otherwise (there are problems to fix), show the cleaning options. -->
+        {% else %}
+
+            <!-- ============ DUPLICATES ============ -->
+            <!-- The card for duplicate rows. -->
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <!-- Title with a count bubble. -->
+                        <h2>Duplicate Rows <span class="pill warn">{{ duplicate_count }}</span></h2>
+                        <p class="sub">These rows are exact copies of an earlier row. Removing duplicates keeps only the first occurrence of each row, so you're left with unique data.</p>
+                    </div>
+                    <!-- Only show the Remove button if there are duplicates. -->
+                    {% if duplicate_count %}
+                    <!-- When the form is submitted, confirm() asks "Are you sure?". Returning false cancels the submission. -->
+                    <form method="POST" action="{% url 'clean_remove_duplicates' %}"
+                          onsubmit="return confirm('Remove {{ duplicate_count }} duplicate rows and keep only the unique data? This can\'t be undone.');">
+                        <!-- Hidden security code required by Django. -->
+                        {% csrf_token %}
+                        <button type="submit" class="fill-btn">Remove Duplicates</button>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <!-- If there are duplicates, list them in a table. -->
+                {% if duplicate_count %}
+                    <!-- A scrollable box around the table. -->
+                    <div class="table-scroll">
+                        <table>
+                            <!-- The table's header row (column titles). -->
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Copy of row</th>
+                                    <!-- One header cell for each column in the dataset. -->
+                                    {% for c in columns %}<th>{{ c }}</th>{% endfor %}
+                                </tr>
+                            </thead>
+                            <!-- The table's body (the data rows). -->
+                            <tbody>
+                                <!-- Loop through each duplicate row and make one table row for it. -->
+                                {% for r in duplicate_rows %}
+                                <tr>
+                                    <!-- The row number of the duplicate. -->
+                                    <td class="row-no">{{ r.row }}</td>
+                                    <!-- The row number of the original it copies. -->
+                                    <td class="row-no">{{ r.duplicate_of }}</td>
+                                    <!-- Show each cell value of the row. -->
+                                    {% for cell in r.cells %}<td>{{ cell }}</td>{% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- If there are more duplicates than the preview limit, tell the user the list is shortened. -->
+                    {% if duplicate_count > preview_limit %}
+                        <p class="note">Showing the first {{ preview_limit }} of {{ duplicate_count }} duplicate rows.</p>
+                    {% endif %}
+                <!-- If there are no duplicates... -->
+                {% else %}
+                    <!-- ...show a green "all good" line. -->
+                    <div class="ok-line">No duplicate rows found.</div>
+                {% endif %}
+            </div>
+
+            <!-- ============ MISSING VALUES ============ -->
+            <!-- The card for missing values. -->
+            <div class="card">
+                <div class="card-head">
+                    <div>
+                        <h2>Missing Values <span class="pill warn">{{ missing_cell_count }}</span></h2>
+                        <p class="sub">
+                            <!-- If there are missing values, explain how many rows are affected. -->
+                            {% if missing_cell_count %}
+                                <!-- pluralize adds an "s" when the number is not 1, so it reads "1 row contains" or "2 rows contain". -->
+                                {{ missing_row_count }} row{{ missing_row_count|pluralize }} contain{{ missing_row_count|pluralize:"s," }} at least one empty cell. Empty text counts as missing too.
+                            {% else %}
+                                Every cell has a value.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Only show the tools if there is at least one missing value. -->
+                {% if missing_cell_count %}
+
+                    <h3 style="margin-top:4px;">Missing values by column</h3>
+                    <!-- A small scrollable table summarizing missing values per column. -->
+                    <div class="table-scroll" style="max-height:240px;">
+                        <table>
+                            <thead>
+                                <tr><th>Column</th><th>Type</th><th>Missing</th><th>% of rows</th></tr>
+                            </thead>
+                            <tbody>
+                                <!-- One table row for each column that has missing values. -->
+                                {% for col in missing_columns %}
+                                <tr>
+                                    <!-- The column's name. -->
+                                    <td>{{ col.name }}</td>
+                                    <!-- Whether the column holds numbers or text. -->
+                                    <td>{% if col.is_numeric %}Numeric{% else %}Text / category{% endif %}</td>
+                                    <!-- How many cells are missing. -->
+                                    <td>{{ col.count }}</td>
+                                    <!-- What percent of the rows that is. -->
+                                    <td>{{ col.percent }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3>Rows with missing values</h3>
+                    <!-- A scrollable table showing the actual rows that have gaps. -->
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <!-- One header cell per dataset column. -->
+                                    {% for c in columns %}<th>{{ c }}</th>{% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- One table row for each row that has a missing value. -->
+                                {% for r in missing_rows %}
+                                <tr>
+                                    <td class="row-no">{{ r.row }}</td>
+                                    <!-- For each cell: if it is missing, show a yellow "missing" cell; otherwise show its value. -->
+                                    {% for cell in r.cells %}
+                                        {% if cell.missing %}<td class="missing-cell">missing</td>{% else %}<td>{{ cell.text }}</td>{% endif %}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- If there are more rows than the preview limit, tell the user the list is shortened. -->
+                    {% if missing_row_count > preview_limit %}
+                        <p class="note">Showing the first {{ preview_limit }} of {{ missing_row_count }} rows with missing values.</p>
+                    {% endif %}
+
+                    <!-- Option 1: exclude rows -->
+                    <!-- The first way to fix missing values: delete the rows. -->
+                    <div class="option-box">
+                        <h4>Option 1: Exclude the rows</h4>
+                        <p>Delete every row that has a missing value. Best when only a few rows are affected.</p>
+                        <!-- This form asks the user to confirm, then sends a POST request to delete the rows. -->
+                        <form method="POST" action="{% url 'clean_drop_missing' %}"
+                              onsubmit="return confirm('Exclude {{ missing_row_count }} rows that have missing values? This can\'t be undone.');">
+                            <!-- Hidden security code required by Django. -->
+                            {% csrf_token %}
+                            <!-- The button text shows how many rows will be removed. -->
+                            <button type="submit" class="outline-btn">Exclude {{ missing_row_count }} row{{ missing_row_count|pluralize }}</button>
+                        </form>
+                    </div>
+
+                    <!-- Option 2: fill values -->
+                    <!-- The second way to fix missing values: fill the gaps instead of deleting rows. -->
+                    <div class="option-box">
+                        <h4>Option 2: Fill the missing values</h4>
+                        <p>Keep the rows and fill the gaps instead. <strong>Default</strong> fills every empty cell in that column with 0 (numeric columns) or "Unknown" (text columns). <strong>Custom value</strong> lets you type a value for each missing cell yourself. Columns left on "Don't fill" are not changed.</p>
+                        <!-- One form that sends all the fill choices to Python at once. -->
+                        <form method="POST" action="{% url 'clean_fill_missing' %}">
+                            <!-- Hidden security code required by Django. -->
+                            {% csrf_token %}
+                            <div class="table-scroll" style="max-height:none;">
+                                <table class="fill-table">
+                                    <thead>
+                                        <tr><th>Column</th><th>Missing</th><th>Fill with</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- One table row for each column that has missing values. -->
+                                        {% for col in missing_columns %}
+                                        <tr>
+                                            <td>
+                                                {{ col.name }}
+                                                <!-- A hidden field that sends the column's name to Python. col.index makes each field name unique (col__0, col__1...). -->
+                                                <input type="hidden" name="col__{{ col.index }}" value="{{ col.name }}">
+                                            </td>
+                                            <td>{{ col.count }}</td>
+                                            <td>
+                                                <!-- The dropdown where the user picks how to fill this column. data-target remembers which custom panel belongs to it. -->
+                                                <select name="strategy__{{ col.index }}" class="fill-strategy" data-target="custom-editor-{{ col.index }}">
+                                                    <!-- No value means "do nothing for this column". -->
+                                                    <option value="">Don't fill</option>
+                                                    <!-- Fill every empty cell with 0 (for numbers) or "Unknown" (for text). -->
+                                                    <option value="default">Default ({% if col.is_numeric %}0{% else %}Unknown{% endif %})</option>
+                                                    <!-- Let the user type their own values. -->
+                                                    <option value="custom">Custom value</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- For each column, make a hidden panel with one input box per missing cell. It is shown only if "Custom value" is chosen. -->
+                            {% for col in missing_columns %}
+                            <!-- style="display:none;" hides the panel at first. The JavaScript at the bottom shows it when needed. -->
+                            <div class="custom-editor" id="custom-editor-{{ col.index }}" style="display:none;">
+                                <h5>Custom values for "{{ col.name }}"</h5>
+                                <!-- The hint says "number" for numeric columns and "value" for text columns. -->
+                                <p class="note">Type a {% if col.is_numeric %}number{% else %}value{% endif %} for each missing cell below. Leave a box empty to keep that cell missing.</p>
+                                <div class="custom-grid">
+                                    <!-- One input box for each missing cell in this column. -->
+                                    {% for cell in col.cells %}
+                                    <label class="custom-cell">
+                                        <!-- The label shows the row number (and a helpful label if there is one). -->
+                                        <span>Row {{ cell.row }}{% if cell.label %} · {{ cell.label }}{% endif %}</span>
+                                        <!-- The text box. Its name encodes the column and row so Python knows where to put the value. -->
+                                        <input type="text" name="cell__{{ col.index }}__{{ cell.row }}"
+                                               placeholder="{% if col.is_numeric %}Number{% else %}Text{% endif %}">
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                <!-- If this column has more missing cells than we are showing, tell the user to come back for the rest. -->
+                                {% if col.count > col.cells|length %}
+                                    <p class="note">Showing the first {{ col.cells|length }} of {{ col.count }} missing cells. Fill these, then come back to this page for the rest.</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+
+                            <div class="fill-actions">
+                                <!-- Sends the whole form to Python. -->
+                                <button type="submit" class="fill-btn">Fill Missing Values</button>
+                            </div>
+                        </form>
+                    </div>
+
+                <!-- If there are no missing values... -->
+                {% else %}
+                    <!-- ...show a green "all good" line. -->
+                    <div class="ok-line">No missing values found.</div>
+                {% endif %}
+            </div>
+
+            <!-- A button that lets the user skip cleaning. It opens the warning pop-up instead of going straight ahead. -->
+            <div class="bottom-actions">
+                <button type="button" class="outline-btn" onclick="openSkipWarning()">
+                    Continue to Visualization without cleaning
+                    <!-- A right arrow icon. -->
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+
+        <!-- End of the "is the data clean?" check. -->
+        {% endif %}
+
+    <!-- End of the "does a dataset exist?" check. -->
+    {% endif %}
+
+</div>
+
+<!-- WARNING: continuing without cleaning -->
+<!-- The pop-up window. It is hidden until the user clicks "Continue without cleaning". Clicking the dark background closes it. -->
+<div class="modal-overlay" id="skip-overlay" onclick="closeSkipWarning(event)">
+    <!-- The white box in the middle of the pop-up. -->
+    <div class="modal-panel">
+        <div class="warn-icon">
+            <!-- A warning triangle icon. -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        </div>
+        <h3>Continue without cleaning?</h3>
+        <p>Your charts will still be drawn, but they may be misleading:</p>
+        <ul>
+            <!-- Only show each warning if that problem actually exists in the data. -->
+            {% if duplicate_count %}<li>Duplicate rows are counted more than once, so totals and counts can be inflated.</li>{% endif %}
+            {% if missing_cell_count %}<li>Rows with missing values are skipped, so totals can be understated and some rows may not appear in a chart at all.</li>{% endif %}
+        </ul>
+        <div class="modal-actions">
+            <!-- Closes the pop-up so the user can go back and clean the data. -->
+            <button type="button" class="outline-btn" onclick="closeSkipWarning()">Go back and clean</button>
+            <!-- Goes to the Analysis page anyway. -->
+            <a href="{% url 'visualization' %}" class="fill-btn">Continue anyway</a>
+        </div>
+    </div>
+</div>
+
+<!-- Everything inside <script> is JavaScript: code that makes the page interactive. -->
+<script>
+    // Show a column's per-cell boxes only while "Custom value" is chosen for that column.
+    // Find every dropdown that has the class "fill-strategy" and do something for each one.
+    document.querySelectorAll('.fill-strategy').forEach(function (select) {
+        // Listen for the moment the user picks a different option in this dropdown.
+        select.addEventListener('change', function () {
+            // Find the custom panel that belongs to this dropdown (its id was saved in data-target).
+            var input = document.getElementById(select.dataset.target);
+            // Only continue if that panel really exists.
+            if (input) {
+                // Show the panel if "Custom value" is chosen; otherwise hide it again.
+                input.style.display = select.value === 'custom' ? 'block' : 'none';
+            }
+        });
+    });
+
+    // ---- Warning shown before continuing without cleaning ----
+    // Opens the pop-up by changing its display from "none" (hidden) to "flex" (visible).
+    function openSkipWarning() {
+        document.getElementById('skip-overlay').style.display = 'flex';
+    }
+    // Closes the pop-up. "evt" is the click event; it is empty when a button calls this function directly.
+    function closeSkipWarning(evt) {
+        // If the click happened INSIDE the white box (not on the dark background), do nothing.
+        if (evt && evt.target.id !== 'skip-overlay') return;  // ignore clicks inside the panel
+        // Hide the pop-up again.
+        document.getElementById('skip-overlay').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
