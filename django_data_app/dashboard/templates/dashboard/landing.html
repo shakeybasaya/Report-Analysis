@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickSnap</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --text: #475569;
+            --muted: #94a3b8;
+            --line: #e2e8f0;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --teal: #0f766e;
+            --teal-dark: #0b5c56;
+            --teal-soft: #ecfdf5;
+            --teal-mid: #14b8a6;
+            --amber: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+        a:focus-visible, button:focus-visible {
+            outline: 3px solid var(--teal-mid);
+            outline-offset: 3px;
+        }
+
+        /* ---------- Navbar ---------- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 40px;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--line);
+        }
+        .logo-mark {
+            width: 34px; height: 34px;
+            background: var(--ink);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--teal-mid);
+        }
+        .brand { font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+        .studio-badge {
+            font-size: 11px; font-weight: 700;
+            color: var(--teal);
+            background: var(--teal-soft);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .navbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13.5px; }
+        .navbar-right a { color: #334155; text-decoration: none; font-weight: 600; }
+        .navbar-right a:hover { color: var(--teal); }
+        .navbar-right .signup-link { background: var(--teal); color: #fff; padding: 8px 16px; border-radius: 8px; }
+        .navbar-right .signup-link:hover { background: var(--teal-dark); color: #fff; }
+        .navbar-right strong { color: var(--ink); }
+        .logout-link {
+            color: var(--muted); background: none; border: none; padding: 0;
+            font: inherit; font-weight: 600; cursor: pointer;
+        }
+        .logout-link:hover { color: #dc2626; }
+
+        /* ---------- Hero ---------- */
+        .hero {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 84px 24px 96px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+            gap: 56px;
+            align-items: center;
+        }
+        .hero h1 {
+            font-size: clamp(34px, 4.6vw, 56px);
+            line-height: 1.08;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin: 0 0 22px;
+        }
+        .hero h1 .accent { color: #059669; }
+        .hero .lead {
+            font-size: 17px;
+            line-height: 1.65;
+            color: var(--text);
+            max-width: 520px;
+            margin: 0 0 34px;
+        }
+        .cta {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--teal); color: #fff;
+            text-decoration: none; font-weight: 700; font-size: 15px;
+            padding: 15px 28px; border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(15,118,110,.28);
+            transition: background .15s ease, transform .15s ease;
+        }
+        .cta:hover { background: var(--teal-dark); transform: translateY(-1px); }
+
+        /* ---------- Sample chart card ---------- */
+        .chart-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 24px 60px -20px rgba(15,23,42,.25);
+            overflow: hidden;
+        }
+        .chart-top {
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--line);
+            background: #fcfdfe;
+        }
+        .chart-top i { width: 10px; height: 10px; border-radius: 50%; background: #e2e8f0; display: block; }
+        .chart-top span { margin-left: 8px; font-size: 12px; font-weight: 600; color: var(--text); }
+        .chart-body { padding: 20px 20px 14px; }
+        .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+        .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+        .kpi small { display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+        .kpi b { font-size: 18px; letter-spacing: -.02em; }
+        .kpi em { font-style: normal; font-size: 11px; font-weight: 700; color: #059669; margin-left: 4px; }
+        .chart-title { font-size: 13px; font-weight: 700; margin: 0 0 2px; }
+        .chart-sub { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+        .chart-body svg { width: 100%; height: auto; display: block; }
+        .legend { display: flex; gap: 16px; font-size: 11.5px; color: var(--text); padding-top: 6px; }
+        .legend span::before {
+            content: ""; display: inline-block; width: 9px; height: 9px;
+            border-radius: 3px; margin-right: 6px; vertical-align: -1px;
+        }
+        .legend .l1::before { background: var(--teal); }
+        .legend .l2::before { background: var(--amber); border-radius: 50%; }
+        .insight {
+            margin: 4px 20px 20px;
+            padding: 10px 12px;
+            background: var(--teal-soft);
+            border-radius: 10px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: #065f46;
+        }
+
+        /* One-time reveal of the bars */
+        .bar { transform-origin: bottom; transform-box: fill-box; animation: grow .8s cubic-bezier(.2,.7,.2,1) both; }
+        .bar:nth-child(2) { animation-delay: .06s; } .bar:nth-child(3) { animation-delay: .12s; }
+        .bar:nth-child(4) { animation-delay: .18s; } .bar:nth-child(5) { animation-delay: .24s; }
+        .bar:nth-child(6) { animation-delay: .30s; } .bar:nth-child(7) { animation-delay: .36s; }
+        .trend { stroke-dasharray: 700; stroke-dashoffset: 700; animation: draw 1.2s .5s ease forwards; }
+        @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+
+        /* ---------- How it works ---------- */
+        .how {
+            border-top: 1px solid var(--line);
+            background: #fff;
+            padding: 80px 24px 96px;
+        }
+        .how-inner { max-width: 1080px; margin: 0 auto; text-align: center; }
+        .how-label { font-size: 12px; font-weight: 700; color: var(--teal); letter-spacing: .08em; margin-bottom: 10px; }
+        .how h2 {
+            font-size: clamp(26px, 3.2vw, 36px);
+            line-height: 1.2;
+            letter-spacing: -.02em;
+            font-weight: 800;
+            max-width: 620px;
+            margin: 0 auto 48px;
+        }
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; text-align: left; }
+        .step-card {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 26px;
+        }
+        .step-number {
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--teal-soft); color: var(--teal);
+            font-weight: 800; font-size: 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+        .step-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15.5px; margin-bottom: 10px; }
+        .step-title svg { color: var(--teal); flex-shrink: 0; }
+        .step-desc { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--text); }
+
+        /* ---------- Footer ---------- */
+        footer {
+            border-top: 1px solid var(--line);
+            padding: 20px 40px;
+            font-size: 12.5px;
+            color: var(--muted);
+            background: var(--bg);
+        }
+        footer strong { color: var(--text); }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 920px) {
+            .hero { grid-template-columns: 1fr; padding-top: 56px; gap: 44px; }
+            .steps { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 520px) {
+            .navbar { padding: 12px 18px; }
+            .kpis { grid-template-columns: 1fr 1fr 1fr; }
+            .kpi b { font-size: 15px; }
+            footer { padding: 18px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .bar, .trend { animation: none; stroke-dashoffset: 0; }
+            .cta { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M6 20V11M12 20V4M18 20v-6"/>
+        </svg>
+    </div>
+    <span class="brand">QuickSnap</span>
+
+    <div class="navbar-right">
+        {% if request.user.is_authenticated %}
+            <strong>{{ request.user.username }}</strong>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">Log out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}">Log in</a>
+            <a href="{% url 'signup' %}" class="signup-link">Sign Up</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+    <div>
+        <h1>Turn Any Dataset into Clear <span class="accent">Charts &amp; Reports</span></h1>
+        <p class="lead">
+            Built for anyone who wants to understand their data. Upload any CSV or Excel file —
+            whether it’s scientific research, digital marketing, student grades, customer surveys,
+            or operational figures — and get instant visualizations, automated insights,
+            and executive-ready reports.
+        </p>
+        <a class="cta" href="{% if request.user.is_authenticated %}{% url 'import_data' %}{% else %}{% url 'signup' %}{% endif %}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>
+            </svg>
+            Upload Data to Begin
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+            </svg>
+        </a>
+    </div>
+
+    <!-- Sample chart: shows what QuickSnap produces -->
+    <figure class="chart-card" style="margin:0;" aria-label="Sample QuickSnap chart">
+        <div class="chart-top"><i></i><i></i><i></i><span>Sample output · Monthly Sales</span></div>
+        <div class="chart-body">
+            <div class="kpis">
+                <div class="kpi"><small>Total revenue</small><b>$48.2k</b><em>+12%</em></div>
+                <div class="kpi"><small>Best month</small><b>Jul</b></div>
+                <div class="kpi"><small>Avg. growth</small><b>8.4%</b><em>+2.1</em></div>
+            </div>
+            <p class="chart-title">Revenue vs. Profit Margin</p>
+            <p class="chart-sub">Last 7 months</p>
+
+            <svg viewBox="0 0 440 210" role="img" aria-label="Bar chart of revenue by month with a rising profit margin line">
+                <!-- grid -->
+                <g stroke="#e2e8f0" stroke-width="1">
+                    <line x1="36" y1="20"  x2="430" y2="20"/>
+                    <line x1="36" y1="64"  x2="430" y2="64"/>
+                    <line x1="36" y1="108" x2="430" y2="108"/>
+                    <line x1="36" y1="152" x2="430" y2="152"/>
+                </g>
+                <line x1="36" y1="180" x2="430" y2="180" stroke="#cbd5e1"/>
+                <g font-size="10" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif">
+                    <text x="30" y="24"  text-anchor="end">60k</text>
+                    <text x="30" y="68"  text-anchor="end">45k</text>
+                    <text x="30" y="112" text-anchor="end">30k</text>
+                    <text x="30" y="156" text-anchor="end">15k</text>
+                    <text x="30" y="184" text-anchor="end">0</text>
+                    <text x="68"  y="198" text-anchor="middle">Jan</text>
+                    <text x="124" y="198" text-anchor="middle">Feb</text>
+                    <text x="180" y="198" text-anchor="middle">Mar</text>
+                    <text x="236" y="198" text-anchor="middle">Apr</text>
+                    <text x="292" y="198" text-anchor="middle">May</text>
+                    <text x="348" y="198" text-anchor="middle">Jun</text>
+                    <text x="404" y="198" text-anchor="middle">Jul</text>
+                </g>
+                <!-- bars -->
+                <g fill="#0f766e">
+                    <rect class="bar" x="52"  y="120" width="32" height="60" rx="5" opacity=".55"/>
+                    <rect class="bar" x="108" y="106" width="32" height="74" rx="5" opacity=".6"/>
+                    <rect class="bar" x="164" y="112" width="32" height="68" rx="5" opacity=".65"/>
+                    <rect class="bar" x="220" y="84"  width="32" height="96" rx="5" opacity=".75"/>
+                    <rect class="bar" x="276" y="70"  width="32" height="110" rx="5" opacity=".85"/>
+                    <rect class="bar" x="332" y="52"  width="32" height="128" rx="5" opacity=".92"/>
+                    <rect class="bar" x="388" y="30"  width="32" height="150" rx="5"/>
+                </g>
+                <!-- trend line -->
+                <polyline class="trend" fill="none" stroke="#f59e0b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
+                          points="68,128 124,118 180,122 236,96 292,84 348,66 404,40"/>
+                <g fill="#fff" stroke="#f59e0b" stroke-width="2.4">
+                    <circle cx="68" cy="128" r="3.6"/><circle cx="124" cy="118" r="3.6"/>
+                    <circle cx="180" cy="122" r="3.6"/><circle cx="236" cy="96" r="3.6"/>
+                    <circle cx="292" cy="84" r="3.6"/><circle cx="348" cy="66" r="3.6"/>
+                    <circle cx="404" cy="40" r="3.6"/>
+                </g>
+            </svg>
+
+            <div class="legend"><span class="l1">Revenue</span><span class="l2">Profit margin</span></div>
+        </div>
+        <div class="insight"><strong>Automated insight:</strong> Revenue grew in 6 of 7 months, peaking in July. Margin is trending up.</div>
+    </figure>
+</header>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section class="how">
+    <div class="how-inner">
+        <div class="how-label">HOW IT WORKS</div>
+        <h2>From Raw Spreadsheet to Executive Presentation in 3 Steps</h2>
+
+        <div class="steps">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/>
+                    </svg>
+                    Import Your Dataset
+                </div>
+                <p class="step-desc">
+                    Drag and drop any CSV or Excel file up to 10 MB. QuickSnap automatically indexes all columns,
+                    detects numbers vs dates vs categories, and provides an immediate summary.
+                </p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-8"/>
+                    </svg>
+                    Dynamic Visualization
+                </div>
+                <p class="step-desc">
+                    Select any variables. Our intelligent engine recommends the ideal chart (scatter, bar, line) while giving you full manual freedom to customize.
+                </p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/>
+                    </svg>
+                    Publish Formal Reports
+                </div>
+                <p class="step-desc">
+                    Queue your charts, edit automated findings and recommendations, and compile a publication-grade
+                    formal PDF report with high-res figures and document controls.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <strong>QuickSnap</strong>
+</footer>
+
+</body>
+</html>

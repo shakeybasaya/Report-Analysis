@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Dataset — QuickSnap</title>
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+
+        /* ---- Navigation bar (top of the page) ---- */
+        /* A white bar where the logo, brand name, and user info sit in a row. */
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 40px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        /* The dark rounded square behind the logo icon, with the icon centered inside it in teal. */
+        .navbar .logo-mark {
+            width: 34px;
+            height: 34px;
+            background: #111827;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #14b8a6;
+        }
+        /* The bold "QuickSnap" brand text. */
+        .navbar .brand {
+            font-weight: 800;
+            font-size: 17px;
+            color: #111827;
+        }
+        /* The right side of the bar (username and Log out). margin-left: auto pushes it to the far right. */
+        .navbar-right { margin-left: auto; display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #374151; }
+        .navbar-right strong { color: #111827; }
+
+        /* Makes the Log out button look like plain grey text, and turn red when the mouse is over it. */
+        .navbar-right .logout-link {
+            color: #9ca3af; text-decoration: none; font-weight: 600;
+            background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; cursor: pointer;
+        }
+        .navbar-right .logout-link:hover { color: #dc2626; }
+
+        /* ---- Main content area ---- */
+        /* A centered column, at most 640px wide, with space above it. */
+        .container {
+            max-width: 640px;
+            margin: 40px auto 0;
+            padding: 0 20px;
+        }
+
+        /* The green "Back to Landing" link. It gets an underline only when the mouse is over it. */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13.5px;
+            color: #0f766e;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 26px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* The centered page title ("Import Dataset") and the short grey description under it. */
+        .page-head { text-align: center; margin-bottom: 32px; }
+        .page-head h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 10px;
+        }
+        .page-head p {
+            font-size: 14.5px;
+            color: #6b7280;
+            line-height: 1.6;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* The red box that shows an error message (for example, "The uploaded dataset is empty."). */
+        .error-box {
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            margin-bottom: 20px;
+        }
+
+        /* ---- Upload box (the dashed drop zone) ---- */
+        /* The big white box with a dashed border. Everything inside is stacked vertically and centered.
+           "transition" makes the color change smoothly when a file is dragged over it. */
+        .upload-card {
+            background: #ffffff;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 44px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* The "dragover" class is added by JavaScript while a file is being dragged over the box.
+           It turns the border green and the background light green. */
+        .upload-card.dragover {
+            border-color: #0f766e;
+            background: #f0fdfa;
+        }
+        /* The light green square with the upload arrow icon at the top of the box. */
+        .upload-icon {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 18px;
+            background: #d1fae5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f766e;
+        }
+        /* The "Choose or drop your file here" heading. */
+        .upload-card h2 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 8px;
+        }
+        /* A small grey help text (kept in case you add a hint line back). */
+        .upload-card .hint {
+            font-size: 13px;
+            color: #6b7280;
+            max-width: 380px;
+            margin: 0 auto 20px;
+            line-height: 1.5;
+        }
+        /* Hides the ugly default file input. The whole box acts as the button instead. */
+        input[type="file"] { display: none; }
+        /* The green "Browse CSV, Excel, or JSON File" button, which gets darker when the mouse is over it. */
+        .browse-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f766e;
+            color: #fff;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 7px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .browse-btn:hover { background: #0b5c56; }
+        /* The green text that shows "Selected: filename" after a file is chosen. */
+        .file-chosen {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #0f766e;
+            font-weight: 600;
+        }
+        /* The small grey line at the bottom of the box ("Supports CSV, XLSX, JSON • Maximum size: 10 MB"),
+           with a thin line above it. */
+        .upload-meta {
+            border-top: 1px solid #eef0f2;
+            margin-top: 26px;
+            padding-top: 14px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .upload-meta .dot { margin: 0 6px; }
+
+        /* ---- Upload Dataset button ---- */
+        .submit-row { text-align: center; margin-top: 22px; }
+
+        .submit-btn {
+            background: #0f766e;
+            color: #fff;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 7px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .submit-btn:hover { background: #0b5c56; }
+        .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        /* ---- Results shown after a successful upload ---- */
+        .results { max-width: 900px; margin: 40px auto 0; padding: 0 20px 60px; }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 26px;
+            margin-bottom: 22px;
+        }
+        .card h2 { font-size: 16px; margin: 0 0 16px; color: #111827; }
+        .dataset-name { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+        .stats { display: flex; gap: 16px; }
+        .stat {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px 20px;
+            flex: 1;
+        }
+        .stat strong { font-size: 12.5px; color: #6b7280; display: block; margin-bottom: 6px; }
+        .stat h2 { margin: 0; font-size: 22px; color: #111827; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #eef0f2; text-align: left; }
+        th { background: #f9fafb; font-weight: 700; color: #374151; }
+        .continue-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f766e;
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 7px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .continue-btn:hover { background: #0b5c56; }
+
+        /* ---- Footer ---- */
+        /* The bar at the bottom of the page with a thin line on top, pushed down by a 120px gap. */
+        footer {
+            margin-top: 120px;
+            border-top: 1px solid #e5e7eb;
+            padding: 20px 40px;
+            font-size: 12.5px;
+            color: #9ca3af;
+        }
+        footer strong { color: #4b5563; }
+    </style>
+</head>
+
+<body>
+
+<!-- ============ NAVIGATION BAR ============ -->
+<nav class="navbar">
+    <!-- The dark square with the logo icon (a small SVG drawing of three bars). -->
+    <div class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M6 20V11M12 20V4M18 20v-6"/>
+        </svg>
+    </div>
+    <span class="brand">QuickSnap</span>
+    <!-- Shows the logged-in user's username, and a Log-out button.
+         The form sends a POST request to log out. The csrf_token line is a hidden security code Django requires on every form. -->
+    <div class="navbar-right">
+        <strong>{{ request.user.username }}</strong>
+        <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-link">Log out</button>
+        </form>
+    </div>
+</nav>
+
+<!-- ============ MAIN CONTENT ============ -->
+<div class="container">
+    <!-- A link back to the landing page. The url tag asks Django for the real address of the page named "landing". -->
+    <a href="{% url 'landing' %}" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Landing
+    </a>
+
+    <!-- The page title and short description. -->
+    <div class="page-head">
+        <h1>Import Dataset</h1>
+        <p>Upload your file (CSV, Excel, or JSON) to begin visual analysis and report generation.</p>
+    </div>
+
+    <!-- If the Python code sent an error message (like "Please select a file."), show it in a red box.
+         The if tag only shows the box when an error exists. -->
+    {% if error %}
+    <div class="error-box"><strong>Error:</strong> {{ error }}</div>
+    {% endif %}
+
+    <!-- The upload form. method="POST" sends the data to the server.
+         enctype="multipart/form-data" is REQUIRED for sending files (without it, the file would not be sent). -->
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+        <!-- Hidden security code required by Django on every form. -->
+        {% csrf_token %}
+
+        <!-- The whole dashed box is a label linked to the hidden file input (for="file-input").
+             That means clicking anywhere in the box opens the file picker. -->
+        <label class="upload-card" id="drop-zone" for="file-input">
+            <!-- The green square with the upload arrow icon. -->
+            <div class="upload-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 16V3M8 7l4-4 4 4"/>
+                    <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>
+                </svg>
+            </div>
+            <h2>Choose or drop your file here</h2>
+
+            <!-- This only LOOKS like a button (it is a span). Clicking it works because it sits inside the label. -->
+            <span class="browse-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <path d="M14 2v6h6"/>
+                </svg>
+                Browse CSV, Excel, or JSON File
+            </span>
+
+            <!-- The real (hidden) file input.
+                 name="file": the name Python uses to find the file.
+                 accept: only lets the picker show CSV, XLSX, and JSON files.
+                 required: the browser will not submit the form without a file. -->
+            <input type="file" id="file-input" name="file" accept=".csv,.xlsx,.json" required>
+            <!-- An empty space where JavaScript writes "Selected: filename". -->
+            <div class="file-chosen" id="file-chosen"></div>
+
+            <!-- A small note listing the allowed file types and size limit. -->
+            <div class="upload-meta">
+                Supports CSV, XLSX, JSON <span class="dot">•</span> Maximum size: 10 MB
+            </div>
+        </label>
+
+        <!-- The Upload button. It starts "disabled" (greyed out) and JavaScript enables it once a file is chosen. -->
+        <div class="submit-row">
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>Upload Dataset</button>
+        </div>
+    </form>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+    <strong>QuickSnap</strong>
+</footer>
+
+<script>
+    // Grab the four page elements we need, so we can use them below.
+    const dropZone = document.getElementById('drop-zone');     // the dashed upload box
+    const fileInput = document.getElementById('file-input');   // the hidden file input
+    const fileChosen = document.getElementById('file-chosen'); // the text that shows the chosen file's name
+    const submitBtn = document.getElementById('submit-btn');   // the Upload Dataset button
+
+    // Updates the page after the user picks (or removes) a file.
+    function showFileName() {
+        // If at least one file is selected: show its name and enable the Upload button.
+        if (fileInput.files.length > 0) {
+            fileChosen.textContent = 'Selected: ' + fileInput.files[0].name;
+            submitBtn.disabled = false;
+        // Otherwise: clear the text and keep the Upload button disabled.
+        } else {
+            fileChosen.textContent = '';
+            submitBtn.disabled = true;
+        }
+    }
+
+    // Run showFileName every time the user chooses a file with the picker.
+    fileInput.addEventListener('change', showFileName);
+
+    // While a file is dragged over the box: stop the browser from opening the file,
+    // and add the "dragover" class so the box turns green.
+    ['dragover', 'dragenter'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+    });
+    // When the file leaves the box or is dropped: remove the green highlight.
+    ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+    });
+    // When a file is dropped: put it into the file input, then update the page.
+    dropZone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            showFileName();
+        }
+    });
+</script>
+
+</body>
+</html>

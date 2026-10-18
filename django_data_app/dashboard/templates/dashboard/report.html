@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Builder — QuickSnap</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+
+        .navbar {
+            display: flex; align-items: center; gap: 26px;
+            padding: 12px 30px; background: #ffffff; border-bottom: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+        .brand-block { display: flex; align-items: center; gap: 10px; margin-right: 10px; }
+        .logo-mark {
+            width: 30px; height: 30px; background: #111827; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center; color: #14b8a6;
+        }
+        .brand { font-weight: 800; font-size: 15.5px; color: #111827; white-space: nowrap; }
+        .nav-pills { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
+        .nav-pill {
+            display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 6px;
+            font-size: 13px; font-weight: 600; text-decoration: none; color: #6b7280;
+        }
+        .nav-pill:hover { color: #111827; }
+        .nav-pill.active { background: #ffffff; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .nav-pill .badge {
+            background: #0f766e; color: #fff; font-size: 11px; font-weight: 700;
+            border-radius: 10px; padding: 1px 7px; margin-left: 2px;
+        }
+        .navbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .file-badge {
+            display: flex; align-items: center; gap: 7px; border: 1px solid #d1fae5; background: #f0fdfa;
+            color: #0f766e; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px; white-space: nowrap;
+        }
+        .file-badge .file-rows { color: #6b7280; font-weight: 500; }
+        .import-new-btn {
+            display: flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; background: #fff;
+            color: #374151; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px;
+            text-decoration: none; white-space: nowrap;
+        }
+        .import-new-btn:hover { background: #f9fafb; }
+        .user-badge {
+            display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #374151; white-space: nowrap;
+        }
+        .user-badge strong { color: #111827; }
+        .logout-link {
+            color: #9ca3af; text-decoration: none; font-weight: 600;
+            background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; cursor: pointer;
+        }
+        .logout-link:hover { color: #dc2626; }
+
+        .container { max-width: 1300px; margin: 26px auto; padding: 0 24px 60px; }
+
+        .page-head {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 14px; margin-bottom: 22px;
+        }
+        .page-head h1 { font-size: 20px; margin: 0 0 4px; color: #111827; }
+        .page-head p { font-size: 13px; color: #6b7280; margin: 0; }
+        .page-head-actions { display: flex; gap: 10px; }
+        .outline-btn {
+            border: 1px solid #d1d5db; background: #fff; color: #374151;
+            font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 7px; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .outline-btn:hover { background: #f9fafb; }
+        .fill-btn {
+            border: none; background: #0f766e; color: #fff;
+            font-size: 13px; font-weight: 700; padding: 9px 16px; border-radius: 7px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .fill-btn:hover { background: #0b5c56; }
+        .fill-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+
+        .sections-head {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 13.5px; font-weight: 700; color: #111827; margin-bottom: 12px;
+        }
+        .sections-head .hint { font-size: 12px; font-weight: 500; color: #9ca3af; }
+
+        .section-row {
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .section-num {
+            background: #f3f4f6; color: #374151; font-weight: 700; font-size: 12.5px;
+            width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .section-thumb {
+            width: 46px; height: 34px; border-radius: 6px; border: 1px solid #e5e7eb;
+            background: #f9fafb; flex-shrink: 0;
+        }
+        .section-text { flex: 1; min-width: 0; }
+        .section-title { font-weight: 700; font-size: 13.5px; color: #111827; }
+        .section-subtitle { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+        .section-actions { display: flex; align-items: center; gap: 6px; }
+        .icon-btn {
+            border: none; background: none; cursor: pointer; color: #9ca3af;
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn:hover { color: #374151; }
+        .icon-btn.danger:hover { color: #dc2626; }
+
+        .empty-state {
+            background: #ffffff; border: 1px dashed #d1d5db; border-radius: 10px;
+            padding: 50px 20px; text-align: center; color: #9ca3af; font-size: 13.5px;
+        }
+
+        .params-card {
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px;
+            display: block; margin: 0;
+        }
+        .params-card h2 { font-size: 14px; margin: 0 0 16px; color: #111827; }
+        .params-hint { font-size: 12px; color: #6b7280; line-height: 1.5; margin: -8px 0 16px; }
+        .field { margin-bottom: 14px; }
+        .field label { display: block; font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .field input, .field textarea {
+            width: 100%; padding: 9px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 12.5px; font-family: inherit; color: #111827;
+        }
+        .field textarea { resize: vertical; min-height: 150px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .field-static {
+            padding: 9px 10px; border: 1px solid #e5e7eb; border-radius: 6px;
+            background: #f3f4f6; font-size: 12.5px; color: #111827;
+        }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="brand-block">
+        <div class="logo-mark">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+                <path d="M6 20V11M12 20V4M18 20v-6"/>
+            </svg>
+        </div>
+        <span class="brand">QuickSnap</span>
+    </div>
+
+    <div class="nav-pills">
+        <a href="{% url 'landing' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Landing
+        </a>
+        <a href="{% url 'import_data' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V3M8 7l4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Import
+        </a>
+        <a href="{% url 'data_cleaning' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+            Cleaning
+        </a>
+        <a href="{% url 'visualization' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+            Analysis
+        </a>
+        <a href="{% url 'report_builder' %}" class="nav-pill active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Report
+            {% if report_count %}<span class="badge">{{ report_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'report_history' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            History
+        </a>
+    </div>
+
+    <div class="navbar-right">
+        {% if dataset %}
+        <div class="file-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            {{ dataset.name }} <span class="file-rows">({{ row_count }} rows)</span>
+        </div>
+        {% endif %}
+        <a href="{% url 'import_data' %}" class="import-new-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Import New
+        </a>
+        <div class="user-badge">
+            <strong>{{ request.user.username }}</strong>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">Log out</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="page-head">
+        <div>
+            <h1>Report Builder</h1>
+            <p>{{ report_count }} chart{{ report_count|pluralize }} queued for publication.</p>
+        </div>
+        <div class="page-head-actions">
+            <a href="{% url 'visualization' %}" class="outline-btn">
+                Add More Charts
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div>
+            <div class="sections-head">
+                <span>Sections ({{ report_count }})</span>
+                <span class="hint">Edit, reorder or remove items</span>
+            </div>
+
+            {% for item in sections %}
+            <div class="section-row">
+                <div class="section-num">{{ forloop.counter }}</div>
+                <div class="section-thumb"></div>
+                <div class="section-text">
+                    <div class="section-title">{{ item.title }}</div>
+                    <div class="section-subtitle">{{ item.subtitle }}</div>
+                </div>
+                <div class="section-actions">
+                    <!-- Edit: opens this chart again on the Analysis page, with its settings and edited text filled in. -->
+                    <a class="icon-btn" href="{% url 'edit_report_item' item.index %}" title="Edit chart">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </a>
+                    <a class="icon-btn" href="{% url 'reorder_report' item.index 'up' %}" title="Move up">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+                    </a>
+                    <a class="icon-btn" href="{% url 'reorder_report' item.index 'down' %}" title="Move down">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </a>
+                    <a class="icon-btn danger" href="{% url 'remove_from_report' item.index %}" title="Remove">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                No charts queued yet. Go to <a href="{% url 'visualization' %}">Analysis</a> and click
+                "Add to Report" on any chart you want to include.
+            </div>
+            {% endfor %}
+        </div>
+
+        <form class="params-card" method="POST" action="{% url 'export_report_pdf' %}" id="report-params-form">
+            {% csrf_token %}
+            <h2>Report Parameters</h2>
+            <div class="field">
+                <label>Report Title</label>
+                <input type="text" name="report_title" value="{{ suggested_title }}" placeholder="Drafted from the charts you add">
+            </div>
+            <div class="field">
+                <label>Subtitle</label>
+                <input type="text" name="subtitle" value="{{ suggested_subtitle }}" placeholder="Drafted from the charts you add">
+            </div>
+            <div class="field field-row">
+                <div>
+                    <label>Prepared By</label>
+                    <div class="field-static">{{ prepared_by }}</div>
+                </div>
+                <div>
+                    <label>Date</label>
+                    <input type="text" name="report_date" id="report-date" value="">
+                </div>
+            </div>
+            <div class="field">
+                <label>Organization</label>
+                <input type="text" name="organization" value="" placeholder="Enter your organization (optional)">
+            </div>
+            <div class="field">
+                <label>Executive Overview</label>
+                <textarea name="executive_overview" placeholder="Drafted from the charts you add">{{ suggested_overview }}</textarea>
+            </div>
+            <button type="submit" class="fill-btn" style="width:100%; justify-content:center;" {% if not sections %}disabled{% endif %}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>
+                Download PDF Report
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById("report-date").value = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+</script>
+
+</body>
+</html>

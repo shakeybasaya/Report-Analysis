@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign-up — QuickSnap</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+        .navbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 40px; background: #ffffff; border-bottom: 1px solid #e5e7eb;
+        }
+        .navbar .logo-mark {
+            width: 34px; height: 34px; background: #111827; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; color: #14b8a6;
+        }
+        .navbar .brand { font-weight: 800; font-size: 17px; color: #111827; }
+
+        .container { max-width: 440px; margin: 60px auto 0; padding: 0 20px 60px; }
+
+        .page-head { text-align: center; margin-bottom: 28px; }
+        .page-head h1 { font-size: 26px; font-weight: 800; color: #111827; margin: 0 0 8px; }
+        .page-head p { font-size: 13.5px; color: #6b7280; margin: 0; }
+
+        .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 28px; }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 12.5px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .field input {
+            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 7px;
+            font-size: 13.5px; color: #111827;
+        }
+        .field input:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.12); }
+        .field .help-text { font-size: 11.5px; color: #9ca3af; margin-top: 5px; line-height: 1.5; }
+        .field .field-errors { font-size: 12px; color: #b91c1c; margin-top: 5px; }
+
+        .submit-btn {
+            width: 100%; background: #0f766e; color: #fff; border: none;
+            padding: 11px 20px; border-radius: 7px; font-weight: 700; font-size: 14px; cursor: pointer;
+        }
+        .submit-btn:hover { background: #0b5c56; }
+
+        .switch-link { text-align: center; margin-top: 18px; font-size: 13px; color: #6b7280; }
+        .switch-link a { color: #0f766e; font-weight: 600; text-decoration: none; }
+        .switch-link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+            <path d="M6 20V11M12 20V4M18 20v-6"/>
+        </svg>
+    </div>
+    <span class="brand">QuickSnap</span>
+</nav>
+
+<div class="container">
+    <div class="page-head">
+        <h1>Create Your Account</h1>
+        <p>Your name will automatically fill "Prepared By" on every report you generate.</p>
+    </div>
+
+    <div class="card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="field">
+                <label for="id_username">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="field-errors">{{ form.username.errors.0 }}</div>{% endif %}
+                <div class="help-text">{{ form.username.help_text }}</div>
+            </div>
+
+            <div class="field">
+                <label for="id_password1">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<div class="field-errors">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="field">
+                <label for="id_password2">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<div class="field-errors">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+
+            <button type="submit" class="submit-btn">Create Account</button>
+        </form>
+    </div>
+
+    <div class="switch-link">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analysis — QuickSnap</title>
+
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f7f8fa;
+            color: #1f2937;
+        }
+        .navbar {
+            display: flex; align-items: center; gap: 26px;
+            padding: 12px 30px; background: #ffffff; border-bottom: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+        .brand-block { display: flex; align-items: center; gap: 10px; margin-right: 10px; }
+        .logo-mark {
+            width: 30px; height: 30px; background: #111827; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center; color: #14b8a6;
+        }
+        .brand { font-weight: 800; font-size: 15.5px; color: #111827; white-space: nowrap; }
+        .nav-pills { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 8px; }
+        .nav-pill {
+            display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 6px;
+            font-size: 13px; font-weight: 600; text-decoration: none; color: #6b7280;
+        }
+        .nav-pill:hover { color: #111827; }
+        .nav-pill.active { background: #ffffff; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+        .nav-pill .badge {
+            background: #0f766e; color: #fff; font-size: 11px; font-weight: 700;
+            border-radius: 10px; padding: 1px 7px; margin-left: 2px;
+        }
+        .navbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+        .file-badge {
+            display: flex; align-items: center; gap: 7px; border: 1px solid #d1fae5; background: #f0fdfa;
+            color: #0f766e; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px; white-space: nowrap;
+        }
+        .file-badge .file-rows { color: #6b7280; font-weight: 500; }
+        .import-new-btn {
+            display: flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; background: #fff;
+            color: #374151; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px;
+            text-decoration: none; white-space: nowrap;
+        }
+        .import-new-btn:hover { background: #f9fafb; }
+        .user-badge {
+            display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #374151; white-space: nowrap;
+        }
+        .user-badge strong { color: #111827; }
+        .logout-link {
+            color: #9ca3af; text-decoration: none; font-weight: 600;
+            background: none; border: none; padding: 0; font-size: inherit; font-family: inherit; cursor: pointer;
+        }
+        .logout-link:hover { color: #dc2626; }
+        .container { max-width: 1300px; margin: 26px auto; padding: 0 24px 60px; }
+        .card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 22px; margin-bottom: 20px; }
+        .error-card { border-left: 4px solid #dc2626; background: #fef2f2; color: #b91c1c; }
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px;
+            margin-bottom: 20px;
+        }
+        .stat-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 18px; }
+        .stat-card h3 { margin: 0; font-size: 12.5px; color: #6b7280; font-weight: 600; }
+        .stat-card p { font-size: 22px; font-weight: 800; margin: 6px 0 0; color: #111827; }
+        .edit-banner {
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+            background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8;
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; line-height: 1.5;
+        }
+        .edit-banner a { color: #1d4ed8; font-weight: 700; text-decoration: none; white-space: nowrap; }
+        .edit-banner a:hover { text-decoration: underline; }
+        .field-hint { font-size: 11.5px; color: #9ca3af; margin: 6px 0 0; line-height: 1.4; }
+        .params-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+        .params-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #111827; }
+        .params-title svg { color: #0f766e; }
+        .params-actions { display: flex; gap: 8px; }
+        .ghost-btn {
+            display: flex; align-items: center; gap: 6px; border: 1px solid #d1d5db; background: #fff;
+            color: #374151; font-size: 12.5px; font-weight: 600; padding: 7px 12px; border-radius: 7px;
+            cursor: pointer; text-decoration: none;
+        }
+        .ghost-btn:hover { background: #f9fafb; }
+        .ghost-btn.accent { color: #0f766e; border-color: #99f6e4; background: #f0fdfa; }
+        .control-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .control-group { display: flex; flex-direction: column; }
+        .control-group label { display: block; font-size: 12.5px; font-weight: 600; color: #4b5563; margin-bottom: 7px; }
+        select {
+            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 7px;
+            background: #fff; font-size: 13.5px; color: #111827;
+        }
+        select:focus { outline: none; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15,118,110,0.12); }
+        .no-color { padding: 10px; background: #f3f4f6; border-radius: 7px; font-size: 12.5px; color: #6b7280; }
+        .chart-reco-note {
+            display: none;
+            margin: 8px 0 0;
+            font-size: 11.5px;
+            line-height: 1.45;
+            color: #0b5c56;
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            border-radius: 6px;
+            padding: 7px 9px;
+        }
+        .chart-reco-note strong { color: #0f766e; }
+        .matrix-options { display: none; margin-top: 18px; }
+        .matrix-options h3 { font-size: 13px; margin: 0 0 4px; }
+        .matrix-options p { font-size: 12px; color: #6b7280; margin: 0 0 10px; }
+        .matrix-options label {
+            display: inline-block; margin: 4px 8px 4px 0; background: #f3f4f6;
+            padding: 7px 11px; border-radius: 6px; font-size: 12.5px; font-weight: 500;
+        }
+        .generate-row { margin-top: 16px; }
+        .primary-btn { background: #0f766e; color: #fff; border: none; padding: 10px 20px; border-radius: 7px; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+        .primary-btn:hover { background: #0b5c56; }
+        .data-preview { margin-top: 18px; border-top: 1px solid #eef0f2; padding-top: 16px; }
+        .data-preview-head {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 10px;
+        }
+        .data-preview-head .close-preview {
+            font-size: 12.5px; font-weight: 600; color: #0f766e; text-decoration: none; cursor: pointer;
+        }
+        .data-preview-head .close-preview:hover { text-decoration: underline; }
+        .data-preview-scroll {
+            max-height: 340px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px;
+        }
+        table.preview-table { width: 100%; border-collapse: collapse; font-size: 12.5px; white-space: nowrap; }
+        table.preview-table th, table.preview-table td { padding: 9px 12px; border-bottom: 1px solid #eef0f2; text-align: left; }
+        table.preview-table thead th {
+            position: sticky; top: 0; background: #f9fafb; color: #374151; font-weight: 700; z-index: 1;
+        }
+        .financial-note { background: #eef4ff; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+        table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        table.data-table th, table.data-table td { padding: 9px 10px; border-bottom: 1px solid #eef0f2; text-align: right; }
+        table.data-table th:first-child, table.data-table td:first-child { text-align: left; }
+        table.data-table th { background: #f9fafb; }
+        .chart-card-title { font-weight: 700; font-size: 14px; color: #111827; margin-bottom: 2px; }
+        .chart-card-subtitle { font-size: 12px; color: #9ca3af; margin-bottom: 14px; }
+        .chart-image-wrap { text-align: center; }
+        .chart-image-wrap img { max-width: 100%; height: auto; border-radius: 6px; }
+        .placeholder { padding: 60px 20px; text-align: center; color: #9ca3af; font-size: 13.5px; }
+        .insights-head { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        .insights-title { font-weight: 700; font-size: 15px; color: #111827; margin: 0 0 4px; }
+        .insights-sub { font-size: 12.5px; color: #6b7280; margin: 0; }
+        .insights-actions { display: flex; gap: 8px; }
+        .outline-btn {
+            border: 1px solid #d1d5db; background: #fff; color: #374151; font-size: 12.5px; font-weight: 600;
+            padding: 8px 14px; border-radius: 7px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .outline-btn:hover { background: #f9fafb; }
+        .fill-btn { border: none; background: #0f766e; color: #fff; font-size: 12.5px; font-weight: 700; padding: 8px 14px; border-radius: 7px; cursor: pointer; }
+        .fill-btn:hover { background: #0b5c56; }
+        .editable-tag { font-size: 10.5px; font-weight: 600; color: #9ca3af; }
+        .insight-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .insight-col-head { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 8px; }
+        .insight-col-head.findings { color: #0f766e; }
+        .insight-col-head.risks { color: #b45309; }
+        .insight-col-head.recommendations { color: #1d4ed8; }
+        textarea.insight-box {
+            width: 100%; height: 190px; resize: vertical; border-radius: 8px; border: 1px solid #e5e7eb;
+            padding: 12px; font-size: 12.5px; line-height: 1.7; font-family: inherit; color: #1f2937;
+        }
+        textarea.insight-box.findings { background: #f0fdfa; }
+        textarea.insight-box.risks { background: #fffbeb; }
+        textarea.insight-box.recommendations { background: #eff6ff; }
+        @media (max-width: 900px) { .insight-columns { grid-template-columns: 1fr; } }
+        .modal-panel.reco-panel { max-width: 640px; }
+        .reco-intro { font-size: 13px; color: #4b5563; line-height: 1.55; margin: 0 0 14px; }
+        .reco-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; }
+        .reco-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+        .reco-type {
+            font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; color: #0f766e; background: #f0fdfa;
+            border: 1px solid #99f6e4; border-radius: 10px; padding: 2px 8px; white-space: nowrap;
+        }
+        .reco-title { font-size: 13.5px; font-weight: 700; color: #111827; }
+        .reco-desc { font-size: 12.5px; color: #6b7280; line-height: 1.5; }
+        .reco-link { display: inline-block; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: #0f766e; text-decoration: none; }
+        .reco-link:hover { text-decoration: underline; }
+        .reco-empty { font-size: 13px; color: #9ca3af; text-align: center; padding: 24px 0; margin: 0; }
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45);
+            align-items: center; justify-content: center; z-index: 100; padding: 20px;
+        }
+        .modal-panel {
+            background: #ffffff; border-radius: 12px; width: 100%; max-width: 520px;
+            max-height: 85vh; overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+            border: 1px solid #e5e7eb;
+        }
+        .modal-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding: 20px 22px 14px; border-bottom: 1px solid #eef0f2;
+        }
+        .modal-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: #0f766e; margin-bottom: 6px; }
+        .modal-head h2 { margin: 0; font-size: 17px; font-weight: 700; color: #111827; }
+        .modal-close { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: #111827; }
+        .modal-body { padding: 18px 22px 4px; }
+        .cg-desc { font-size: 13.5px; color: #4b5563; line-height: 1.6; margin-bottom: 18px; }
+        .cg-section { padding: 14px 0; border-top: 1px solid #eef0f2; font-size: 13px; line-height: 1.6; color: #374151; }
+        .cg-section:first-of-type { border-top: none; padding-top: 0; }
+        .cg-section-title { font-weight: 700; font-size: 12.5px; color: #111827; margin-bottom: 5px; }
+        .modal-foot {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 22px 20px; font-size: 12px; color: #9ca3af;
+        }
+        @media (max-width: 900px) { .control-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { .control-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+
+<body>
+<!-- Main analysis page: chart controls, data preview, pivot table, and chart results. -->
+
+
+<nav class="navbar">
+
+    <div class="brand-block">
+        <div class="logo-mark">
+
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 20V11M12 20V4M18 20v-6"/></svg>
+        </div>
+        <span class="brand">QuickSnap</span>
+    </div>
+
+    <div class="nav-pills">
+        <a href="{% url 'landing' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Landing
+        </a>
+        <a href="{% url 'import_data' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V3M8 7l4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Import
+        </a>
+        <a href="{% url 'data_cleaning' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+            Cleaning
+        </a>
+        <a href="{% url 'visualization' %}" class="nav-pill active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+            Analysis
+        </a>
+        <a href="{% url 'report_builder' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Report
+
+            {% if report_count %}<span class="badge">{{ report_count }}</span>{% endif %}
+        </a>
+        <a href="{% url 'report_history' %}" class="nav-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+            History
+        </a>
+    </div>
+
+    <div class="navbar-right">
+
+        {% if dataset %}
+        <div class="file-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            {{ dataset.name }} <span class="file-rows">({{ row_count }} rows)</span>
+        </div>
+        {% endif %}
+        <a href="{% url 'import_data' %}" class="import-new-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Import New
+        </a>
+
+        <div class="user-badge">
+            <strong>{{ request.user.username }}</strong>
+            <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">Log out</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+
+<div class="container">
+
+
+    {% if error %}
+        <div class="card error-card">{{ error }}</div>
+    {% endif %}
+
+
+    {% if dataset %}
+
+
+    {% if edit_index is not None %}
+    <div class="edit-banner">
+        <span>You are editing chart <strong>#{{ edit_number }}</strong> of your report. Change the settings if you like, then click
+            <strong>Update Report Item</strong> to save your changes.</span>
+        <a href="{% url 'report_builder' %}">Cancel</a>
+    </div>
+    {% endif %}
+
+
+    <div class="stats">
+        <div class="stat-card"><h3>Rows</h3><p>{{ row_count }}</p></div>
+        <div class="stat-card"><h3>Columns</h3><p>{{ column_count }}</p></div>
+        <div class="stat-card"><h3>Numeric Columns</h3><p>{{ numeric_columns|length }}</p></div>
+        <div class="stat-card"><h3>Categorical Columns</h3><p>{{ categorical_columns|length }}</p></div>
+    </div>
+
+
+    {% if is_financial %}
+    <div class="card">
+        <h2 style="margin-top:0; font-size:15px;">Financial Ratio Analysis</h2>
+        <p style="font-size:13px; color:#6b7280;">
+            Detected Profit &amp; Loss / Balance Sheet fields and computed the following ratios. These are
+            also available as regular numeric variables in the chart controls below.
+        </p>
+        {% for note in financial_notes %}
+            <div class="financial-note">{{ note }}</div>
+        {% endfor %}
+        {% if ratio_table %}
+            <div style="overflow-x:auto;">{{ ratio_table|safe }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+
+
+    <div class="card">
+
+        <div class="params-head">
+            <div class="params-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 21V14M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>
+                </svg>
+                Chart Parameters
+            </div>
+            <div class="params-actions">
+
+                <button type="button" class="ghost-btn" id="toggle-data-btn" onclick="toggleDataPreview()" {% if not data_preview %}disabled{% endif %}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>
+                    </svg>
+                    <span id="toggle-data-label">View Data</span>
+                </button>
+
+                <button type="button" class="ghost-btn" id="toggle-pivot-btn" onclick="togglePivotTable()" aria-expanded="{% if pivot_html or pivot_error %}true{% else %}false{% endif %}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18M15 9v12"/>
+                    </svg>
+                    <span id="toggle-pivot-label">{% if pivot_html or pivot_error %}Hide Pivot Table{% else %}Pivot Table{% endif %}</span>
+                </button>
+
+                <button type="button" class="ghost-btn accent" id="concept-guide-btn" onclick="openConceptGuide()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 1.9-2.4 3.2"/><path d="M12 17h.01"/>
+                    </svg>
+                    Concept Guide
+                </button>
+            </div>
+        </div>
+
+
+        <form method="GET" id="chart-form">
+
+            {% if edit_index is not None %}<input type="hidden" name="edit" value="{{ edit_index }}">{% endif %}
+            <div class="control-grid">
+
+                <div class="control-group">
+                    <label>Chart Type</label>
+                    <select name="chart_type" id="chart_type">
+                        <option value="bar" {% if chart_type == "bar" %}selected{% endif %}>Bar Chart</option>
+                        <option value="line" {% if chart_type == "line" %}selected{% endif %}>Line Chart</option>
+                        <option value="pie" {% if chart_type == "pie" %}selected{% endif %}>Pie Chart</option>
+                        <option value="scatter" {% if chart_type == "scatter" %}selected{% endif %}>Scatter Plot</option>
+                        <option value="distribution" {% if chart_type == "distribution" %}selected{% endif %}>Distribution</option>
+                        <option value="scatter_matrix" {% if chart_type == "scatter_matrix" %}selected{% endif %}>Scatter Matrix</option>
+                        <option value="colored_scatter" {% if chart_type == "colored_scatter" %}selected{% endif %}>Colored Scatter</option>
+                    </select>
+
+                    <p class="chart-reco-note" id="chart-reco-note"></p>
+                </div>
+
+
+                <div class="control-group" id="x-control">
+                    <label>X-Axis Variable</label>
+                    <select name="x_column">
+                        {% for column in columns %}
+                            <option value="{{ column }}" {% if column == x_column %}selected{% endif %}>{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="control-group" id="y-control">
+                    <label>Y-Axis Metric</label>
+                    <select name="y_column">
+                        <option value="__count__" {% if y_column == "__count__" %}selected{% endif %}>Count (number of records)</option>
+                        {% for column in numeric_columns %}
+                            <option value="{{ column }}" {% if column == y_column %}selected{% endif %}>{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="control-group" id="agg-control">
+                    <label>Calculation (Group By X)</label>
+                    <select name="agg" id="agg">
+                        <option value="sum" {% if agg == "sum" %}selected{% endif %}>Sum</option>
+                        <option value="count" {% if agg == "count" %}selected{% endif %}>Count (non-empty values)</option>
+                        <option value="mean" {% if agg == "mean" %}selected{% endif %}>Average</option>
+                        <option value="max" {% if agg == "max" %}selected{% endif %}>Maximum (Max)</option>
+                        <option value="min" {% if agg == "min" %}selected{% endif %}>Minimum (Min)</option>
+                        <option value="std" {% if agg == "std" %}selected{% endif %}>Standard Deviation</option>
+                        <option value="nunique" {% if agg == "nunique" %}selected{% endif %}>Distinct Count</option>
+                        <option value="total" {% if agg == "total" %}selected{% endif %}>Total Records</option>
+                    </select>
+                    <p class="field-hint">Choose how to summarize values within each X-axis group.</p>
+                </div>
+
+
+                <div class="control-group" id="color-control">
+                    <label>Color By</label>
+                    {% if categorical_columns %}
+                        <select name="color_column">
+                            {% for column in categorical_columns %}
+                                <option value="{{ column }}" {% if column == color_column %}selected{% endif %}>{{ column }}</option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        <div class="no-color">No categorical columns detected.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <div class="matrix-options" id="matrix-options">
+                <h3>Select Numeric Variables</h3>
+                <p>Choose at least two variables (up to 4 will be used).</p>
+                {% for column in numeric_columns %}
+                    <label>
+                        <input type="checkbox" name="matrix_columns" value="{{ column }}"
+                               {% if column in selected_matrix %}checked{% endif %}>
+                        {{ column }}
+                    </label>
+                {% endfor %}
+            </div>
+
+
+            <div class="generate-row">
+                <button type="submit" class="primary-btn">Generate Visualization</button>
+            </div>
+        </form>
+
+
+        <div class="card" id="pivot-table-card" style="display:{% if pivot_html or pivot_error %}block{% else %}none{% endif %};">
+            <h2 style="margin-top:0; font-size:16px;">Pivot Table</h2>
+            <p style="font-size:13px; color:#6b7280;">Summarize your dataset by rows, optional columns, and a calculation. This table is only shown here; it is not added to the Report Builder or PDF report.</p>
+            <form method="GET" id="pivot-form">
+                {% if edit_index is not None %}<input type="hidden" name="edit" value="{{ edit_index }}">{% endif %}
+                <input type="hidden" name="chart_type" value="{{ chart_type }}">
+                <input type="hidden" name="x_column" value="{{ x_column }}">
+                <input type="hidden" name="y_column" value="{{ y_column }}">
+                <input type="hidden" name="color_column" value="{{ color_column }}">
+                <input type="hidden" name="agg" value="{{ agg }}">
+                {% for m in selected_matrix %}<input type="hidden" name="matrix_columns" value="{{ m }}">{% endfor %}
+                <div class="control-grid">
+                    <div class="control-group">
+                        <label>Rows (Group By)</label>
+                        <select name="pivot_rows" required>
+                            {% for column in columns %}<option value="{{ column }}" {% if pivot_rows == column %}selected{% endif %}>{{ column }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Columns (Optional)</label>
+                        <select name="pivot_columns">
+                            <option value="" {% if not pivot_columns %}selected{% endif %}>None</option>
+                            {% for column in columns %}<option value="{{ column }}" {% if pivot_columns == column %}selected{% endif %}>{{ column }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Values</label>
+                        <select name="pivot_values">
+                            <option value="__records__" {% if pivot_values == "__records__" %}selected{% endif %}>Records (row count)</option>
+                            {% for column in columns %}<option value="{{ column }}" {% if pivot_values == column %}selected{% endif %}>{{ column }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Calculation</label>
+                        <select name="pivot_agg">
+                            <option value="sum" {% if pivot_agg == "sum" %}selected{% endif %}>Sum</option>
+                            <option value="count" {% if pivot_agg == "count" %}selected{% endif %}>Count</option>
+                            <option value="mean" {% if pivot_agg == "mean" %}selected{% endif %}>Average</option>
+                            <option value="max" {% if pivot_agg == "max" %}selected{% endif %}>Maximum</option>
+                            <option value="min" {% if pivot_agg == "min" %}selected{% endif %}>Minimum</option>
+                            <option value="std" {% if pivot_agg == "std" %}selected{% endif %}>Standard Deviation</option>
+                            <option value="nunique" {% if pivot_agg == "nunique" %}selected{% endif %}>Distinct Count</option>
+                            <option value="total" {% if pivot_agg == "total" %}selected{% endif %}>Total Records</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="generate-row"><button type="submit" name="show_pivot" value="1" class="primary-btn">Generate Pivot Table</button></div>
+            </form>
+            {% if pivot_error %}<p class="error-card" style="padding:12px; border-radius:8px;">{{ pivot_error }}</p>{% endif %}
+            {% if pivot_html %}
+                <div style="overflow-x:auto; margin-top:16px;">{{ pivot_html|safe }}</div>
+                <p class="field-hint">Temporary result only — this pivot table is not saved to Add to Report or exported to the PDF report.</p>
+            {% endif %}
+        </div>
+
+
+
+        {% if data_preview %}
+        <div class="data-preview" id="data-preview" style="display:none;">
+            <div class="data-preview-head">
+                <span>Data Preview ({{ row_count }} rows, {{ column_count }} columns)</span>
+
+                <a href="#" class="close-preview" onclick="toggleDataPreview(); return false;">Close Preview</a>
+            </div>
+            <div class="data-preview-scroll">
+                {{ data_preview|safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+    <div class="card">
+        {% if chart_title %}
+            <div class="chart-card-title">{{ chart_title }}</div>
+            <div class="chart-card-subtitle">{{ chart_subtitle }}</div>
+        {% endif %}
+        <div class="chart-image-wrap">
+
+            {% if chart_image %}
+                <img src="data:image/png;base64,{{ chart_image }}" alt="Chart">
+            {% elif not error %}
+                <p class="placeholder">Select variables and click "Generate Visualization".</p>
+            {% endif %}
+        </div>
+    </div>
+
+
+
+    {% if chart_image %}
+    <div class="card">
+        <div class="insights-head">
+            <div>
+                <p class="insights-title">Business Insights &amp; Commentary</p>
+                <p class="insights-sub">Review and customize the automated findings before including them in the final report.</p>
+            </div>
+            <div class="insights-actions">
+
+
+                <button type="submit" form="add-to-report-form" class="fill-btn">{% if edit_index is not None %}Update Report Item{% else %}+ Add to Report{% endif %}</button>
+                <a href="{% url 'report_builder' %}" class="outline-btn">{% if edit_index is not None %}Cancel{% else %}Go to Report{% endif %}</a>
+            </div>
+        </div>
+
+
+        <div class="insight-columns">
+            <div>
+                <div class="insight-col-head findings">Key Findings <span class="editable-tag">Editable</span></div>
+                <textarea class="insight-box findings" form="add-to-report-form" name="key_findings_text">{% for point in key_findings %}{{ point }}
+{% endfor %}</textarea>
+            </div>
+            <div>
+                <div class="insight-col-head risks">Risks &amp; Opportunities <span class="editable-tag">Editable</span></div>
+                <textarea class="insight-box risks" form="add-to-report-form" name="risks_text">{% for point in risks_opportunities %}{{ point }}
+{% endfor %}</textarea>
+            </div>
+            <div>
+                <div class="insight-col-head recommendations">Strategic Recommendations <span class="editable-tag">Editable</span></div>
+                <textarea class="insight-box recommendations" form="add-to-report-form" name="recommendations_text">{% for point in strategic_recommendations %}{{ point }}
+{% endfor %}</textarea>
+            </div>
+        </div>
+
+
+
+        <form method="POST" action="{% url 'add_to_report' %}" id="add-to-report-form">
+
+            {% csrf_token %}
+            <input type="hidden" name="chart_type" value="{{ chart_type }}">
+            <input type="hidden" name="x_column" value="{{ x_column }}">
+            <input type="hidden" name="y_column" value="{{ y_column }}">
+            <input type="hidden" name="color_column" value="{{ color_column }}">
+
+            <input type="hidden" name="agg" value="{{ agg }}">
+            <input type="hidden" name="date_interval" value="{{ date_interval }}">
+
+            {% if edit_index is not None %}<input type="hidden" name="edit_index" value="{{ edit_index }}">{% endif %}
+
+            {% for m in selected_matrix %}
+                <input type="hidden" name="matrix_columns" value="{{ m }}">
+            {% endfor %}
+
+            <input type="hidden" name="query_string" value="{{ query_string }}">
+        </form>
+    </div>
+    {% endif %}
+
+
+    {% endif %}
+</div>
+
+
+
+<div class="modal-overlay" id="reco-overlay" onclick="closeRecoOnOverlay(event)">
+    <div class="modal-panel reco-panel">
+        <div class="modal-head">
+            <div>
+                <div class="modal-eyebrow">CHART GUIDE</div>
+                <h2>Recommended Charts</h2>
+            </div>
+
+            <button type="button" class="modal-close" onclick="closeReco()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="reco-intro">
+                Based on the variables in your dataset, these charts are good starting points.
+                It's only a guide, so you can still build any chart you like.
+            </p>
+
+            {% for rec in chart_recommendations %}
+            <div class="reco-item">
+                <div class="reco-top">
+                    <span class="reco-type">{{ rec.type_label }}</span>
+                    <span class="reco-title">{{ rec.title }}</span>
+                </div>
+                <div class="reco-desc">{{ rec.description }}</div>
+                <a class="reco-link" href="{% url 'visualization' %}?{{ rec.query }}">Create this chart &rarr;</a>
+            </div>
+            {% empty %}
+            <p class="reco-empty">There aren't enough suitable variables to suggest charts. You can still use the chart controls above.</p>
+            {% endfor %}
+        </div>
+        <div class="modal-foot">
+            <span></span>
+            <button type="button" class="primary-btn" onclick="closeReco()">Close</button>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal-overlay" id="concept-guide-overlay" onclick="closeConceptGuideOnOverlay(event)">
+    <div class="modal-panel">
+        <div class="modal-head">
+            <div>
+                <div class="modal-eyebrow">USER CONCEPT GUIDE</div>
+                <h2 id="cg-title">Chart Guide</h2>
+            </div>
+            <button type="button" class="modal-close" onclick="closeConceptGuide()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="cg-desc" id="cg-description"></div>
+            <div class="cg-section">
+                <div class="cg-section-title">Best Used For</div>
+                <div id="cg-best-used"></div>
+            </div>
+            <div class="cg-section">
+                <div class="cg-section-title">How to Interpret &amp; Analyze</div>
+                <div id="cg-interpret"></div>
+            </div>
+            <div class="cg-section">
+                <div class="cg-section-title">Common Pitfalls</div>
+                <div id="cg-watchouts"></div>
+            </div>
+            <div class="cg-section">
+                <div class="cg-section-title">Real-World Analogy</div>
+                <div id="cg-analogy"></div>
+            </div>
+        </div>
+        <div class="modal-foot">
+            <span id="cg-category">Category:</span>
+            <button type="button" class="primary-btn" onclick="closeConceptGuide()">Got It</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// Handles chart controls, panel toggles, recommendations, and the concept guide.
+    const CONCEPT_GUIDES = {
+        bar: {
+            title: "Bar Chart (Comparison)",
+            category: "Comparison",
+            description: "Compares a number across groups. Each bar is one group, and the taller the bar, the larger the value.",
+            best_used_for: "Comparing groups side by side, such as survey answers by option, average grade by class, website visits by traffic source, patients by department, or records by region.",
+            how_to_interpret: "Look at the tallest and shortest bars first, then check how big the gaps are between groups and whether a few groups make up most of the total.",
+            watchouts: "Too many bars become hard to read. Start bars at zero so small differences do not look bigger than they are, and make sure group names are spelled consistently.",
+            analogy: "Like lining people up by height: you can see at a glance who is tallest and who is shortest."
+        },
+        line: {
+            title: "Line Chart (Trend)",
+            category: "Trend",
+            description: "Connects points in order to show how a value changes from one step to the next, most often over time.",
+            best_used_for: "Tracking change over time or across an ordered sequence, such as daily temperature, monthly sign-ups, exam scores by week, sensor readings, or app usage by hour.",
+            how_to_interpret: "Follow the direction of the line: rising means increase, falling means decrease, and flat means little change. Look for sudden spikes, dips, and repeating patterns.",
+            watchouts: "Lines imply the x-axis has a natural order, so avoid them for unrelated categories. A single spike may be a data error, and gaps can hide what happened between points.",
+            analogy: "Like a heart monitor: the shape of the line tells the story of what has been happening."
+        },
+        pie: {
+            title: "Pie Chart (Composition / Share)",
+            category: "Composition",
+            description: "Shows how a whole is divided into parts, sized by each category's share of the total.",
+            best_used_for: "Showing how a whole is split among a few groups, such as survey respondents by age group, devices used to visit a site, types of feedback received, or students by program.",
+            how_to_interpret: "Compare slice sizes to see which groups make up most of the whole. A slice near half or more means one group dominates.",
+            watchouts: "Avoid pie charts with more than 6 to 8 slices, because small slivers become unreadable. Similar-sized slices are hard to tell apart, so use a bar chart when exact comparison matters.",
+            analogy: "Like slicing a pizza: you can see who gets the biggest piece, but not by how much more they are actually eating."
+        },
+        scatter: {
+            title: "Scatter Plot (Relationship)",
+            category: "Relationship",
+            description: "Places each record as a dot, using one number for the horizontal position and another for the vertical position.",
+            best_used_for: "Checking whether two numbers move together, such as study hours and exam scores, ad spend and clicks, height and weight, or temperature and energy use.",
+            how_to_interpret: "Dots rising to the right mean both values increase together. Dots falling mean one rises as the other falls. A shapeless cloud means little or no relationship, and dots far from the rest are outliers.",
+            watchouts: "A pattern does not prove that one thing causes the other. A few outliers can distort the picture, and many overlapping dots can hide the real shape.",
+            analogy: "Like marking each student on a map of hours studied versus score: if studying helps, the dots drift upward."
+        },
+        distribution: {
+            title: "Distribution (Spread / Shape)",
+            category: "Distribution",
+            description: "Shows how the values of one number are spread out: which values are common, which are rare, and how wide the range is.",
+            best_used_for: "Understanding the shape of a single numeric column, such as ages of respondents, test scores, response times, measurement results, or order sizes.",
+            how_to_interpret: "Find the tallest part, which is the most common range of values. Check whether the shape is balanced or leans to one side, and whether a few values sit far from the rest.",
+            watchouts: "The look of the chart can change with the number of bins, so do not read too much into small bumps. Averages can be misleading when the data is lopsided or has extreme values.",
+            analogy: "Like looking at a crowd from above to see where most people stand and how far the stragglers are."
+        },
+        scatter_matrix: {
+            title: "Scatter Matrix (Multi-variable Relationships)",
+            category: "Relationship",
+            description: "A grid of scatter plots that compares every pair of the numeric variables you pick, all in one view.",
+            best_used_for: "Exploring a new dataset to spot which numeric columns are related before digging deeper, such as survey scales, lab measurements, game stats, or student performance indicators.",
+            how_to_interpret: "Scan the grid for panels with a clear upward or downward pattern. Those pairs are worth a closer look. Panels that look like random clouds show little relationship.",
+            watchouts: "Too many variables make each panel small and crowded, so stick to the few columns that matter. As with any scatter plot, a pattern is a clue, not proof of cause.",
+            analogy: "Like a speed-dating round for your columns: every variable meets every other one so you can see which pairs click."
+        },
+        colored_scatter: {
+            title: "Colored Scatter (Relationship by Group)",
+            category: "Relationship",
+            description: "A scatter plot where each dot is colored by a category, so you can see how the relationship differs between groups.",
+            best_used_for: "Seeing whether groups behave differently, such as scores versus study time by class, height versus weight by gender, or clicks versus spend by campaign.",
+            how_to_interpret: "Look for colors that cluster together or follow different directions. Groups that separate clearly differ in how the two numbers relate.",
+            watchouts: "Too many colors are hard to tell apart, so keep to a handful of groups. Overlapping dots can hide smaller groups, and very small groups can look like a pattern by chance.",
+            analogy: "Like a stadium crowd with each team in its own jersey color: you can tell the groups apart and see where each one sits."
+        }
+    };
+    const COLUMN_META = {{ column_meta_json|default:"{}"|safe }};
+    const CHART_TYPE_LABELS = {
+        bar: "Bar Chart",
+        line: "Line Chart",
+        pie: "Pie Chart",
+        scatter: "Scatter Plot",
+        colored_scatter: "Colored Scatter",
+        distribution: "Distribution",
+        scatter_matrix: "Scatter Matrix",
+    };
+    function updateControls() {
+        const type = document.getElementById("chart_type").value;
+        const xControl = document.getElementById("x-control");
+        const yControl = document.getElementById("y-control");
+        const colorControl = document.getElementById("color-control");
+        const matrixOptions = document.getElementById("matrix-options");
+        const aggControl = document.getElementById("agg-control");
+        xControl.style.display = "none";
+        yControl.style.display = "none";
+        colorControl.style.display = "none";
+        matrixOptions.style.display = "none";
+        aggControl.style.display = "none";
+        if (["bar", "line", "pie", "scatter"].includes(type)) {
+            xControl.style.display = "flex";
+            yControl.style.display = "flex";
+        } else if (type === "distribution") {
+            yControl.style.display = "flex";
+        } else if (type === "colored_scatter") {
+            xControl.style.display = "flex";
+            yControl.style.display = "flex";
+            colorControl.style.display = "flex";
+        } else if (type === "scatter_matrix") {
+            matrixOptions.style.display = "block";
+        }
+        const yValue = document.querySelector('select[name="y_column"]').value;
+        if (["bar", "line", "pie"].includes(type)) {
+            aggControl.style.display = "flex";
+        }
+        updateChartRecommendation();
+    }
+    document.getElementById("chart_type").addEventListener("change", updateControls);
+    document.querySelector('select[name="y_column"]').addEventListener("change", updateControls);
+    updateControls();
+    function recommendChartType() {
+        const xSelect = document.querySelector('select[name="x_column"]');
+        const ySelect = document.querySelector('select[name="y_column"]');
+
+        const xCol = xSelect ? xSelect.value : null;
+        const yColRaw = ySelect ? ySelect.value : null;
+        const xMeta = xCol ? COLUMN_META[xCol] : null;
+        const yMeta = (yColRaw && yColRaw !== "__count__") ? COLUMN_META[yColRaw] : null;
+        if (!xMeta) return null;
+        if (xMeta.type === "numeric" && yMeta && yMeta.type === "numeric") {
+            return {
+                type: "scatter",
+                reason: "both variables are numeric, so a scatter plot best reveals their relationship.",
+            };
+        }
+        if (xMeta.type === "categorical") {
+            if (xMeta.time_like) {
+                return {
+                    type: "line",
+                    reason: `"${xCol}" looks like a time-based field, so a line chart best shows the trend.`,
+                };
+            }
+            if (xMeta.unique > 0 && xMeta.unique <= 6) {
+                return {
+                    type: "pie",
+                    reason: `"${xCol}" has only ${xMeta.unique} categories, which suits a pie chart.`,
+                };
+            }
+            return {
+                type: "bar",
+                reason: `"${xCol}" is categorical, so a bar chart is best for comparing groups.`,
+            };
+        }
+        if (xMeta.type === "numeric" && !yMeta) {
+            return {
+                type: "distribution",
+                reason: `"${xCol}" is numeric — a distribution best shows its spread.`,
+            };
+        }
+        return null;
+    }
+    function updateChartRecommendation() {
+        const note = document.getElementById("chart-reco-note");
+        if (!note) return;
+
+        const currentType = document.getElementById("chart_type").value;
+        const rec = recommendChartType();
+        if (!rec || rec.type === currentType) {
+            note.style.display = "none";
+            note.innerHTML = "";
+            return;
+        }
+        const label = CHART_TYPE_LABELS[rec.type] || rec.type;
+        note.innerHTML = "\uD83D\uDCA1 Recommended: <strong>" + label + "</strong> \u2014 " + rec.reason;
+        note.style.display = "block";
+    }
+    document.querySelectorAll('select[name="x_column"], select[name="y_column"], select[name="color_column"]').forEach(function (sel) {
+        sel.addEventListener("change", updateChartRecommendation);
+    });
+    updateChartRecommendation();
+    function toggleDataPreview() {
+        const panel = document.getElementById('data-preview');
+        if (!panel) return;
+        const label = document.getElementById('toggle-data-label');
+        const isHidden = panel.style.display === 'none' || panel.style.display === '';
+        panel.style.display = isHidden ? 'block' : 'none';
+        label.textContent = isHidden ? 'Hide Data' : 'View Data';
+    }
+    function togglePivotTable() {
+        const panel = document.getElementById('pivot-table-card');
+        const button = document.getElementById('toggle-pivot-btn');
+        const label = document.getElementById('toggle-pivot-label');
+        if (!panel || !button || !label) return;
+
+        const isHidden = panel.style.display === 'none' || panel.style.display === '';
+        panel.style.display = isHidden ? 'block' : 'none';
+        label.textContent = isHidden ? 'Hide Pivot Table' : 'Pivot Table';
+        button.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+
+        if (isHidden) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+    function openReco() {
+        document.getElementById('reco-overlay').style.display = 'flex';
+    }
+    function closeReco() {
+        document.getElementById('reco-overlay').style.display = 'none';
+    }
+    function closeRecoOnOverlay(evt) {
+        if (evt.target.id === 'reco-overlay') {
+            closeReco();
+        }
+    }
+    function openConceptGuide() {
+        const type = document.getElementById('chart_type').value;
+        const guide = CONCEPT_GUIDES[type] || CONCEPT_GUIDES['bar'];
+        if (!guide) return;
+        document.getElementById('cg-title').textContent = guide.title;
+        document.getElementById('cg-description').textContent = guide.description;
+        document.getElementById('cg-best-used').textContent = guide.best_used_for;
+        document.getElementById('cg-interpret').textContent = guide.how_to_interpret;
+        document.getElementById('cg-watchouts').textContent = guide.watchouts;
+        document.getElementById('cg-analogy').textContent = guide.analogy;
+        document.getElementById('cg-category').textContent = 'Category: ' + guide.category;
+        document.getElementById('concept-guide-overlay').style.display = 'flex';
+    }
+    function closeConceptGuide() {
+        document.getElementById('concept-guide-overlay').style.display = 'none';
+    }
+
+    function closeConceptGuideOnOverlay(evt) {
+        if (evt.target.id === 'concept-guide-overlay') {
+            closeConceptGuide();
+        }
+    }
+</script>
+
+</body>
+</html>
