@@ -193,6 +193,40 @@
         .step-title svg { color: var(--teal); flex-shrink: 0; }
         .step-desc { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--text); }
 
+
+        /* ---------- User manual ---------- */
+        .manual-toggle-wrap { max-width: 1180px; margin: -42px auto 56px; padding: 0 24px; text-align: center; }
+        .manual-toggle {
+            display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+            padding: 12px 20px; border: 1px solid #99f6e4; border-radius: 10px;
+            background: #fff; color: var(--teal); font: inherit; font-size: 14px;
+            font-weight: 750; cursor: pointer; box-shadow: 0 4px 12px rgba(15,23,42,.05);
+            transition: background .15s ease, transform .15s ease;
+        }
+        .manual-toggle:hover { background: var(--teal-soft); transform: translateY(-1px); }
+        .manual-panel {
+            max-width: 1080px; margin: 22px auto 0; padding: 28px;
+            text-align: left; background: #fff; border: 1px solid var(--line);
+            border-radius: 16px; box-shadow: 0 14px 36px rgba(15,23,42,.08);
+        }
+        .manual-panel[hidden] { display: none; }
+        .manual-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+        .manual-heading h2 { margin: 0 0 8px; font-size: clamp(23px, 3vw, 30px); letter-spacing: -.02em; }
+        .manual-heading p { margin: 0; color: var(--text); font-size: 14px; line-height: 1.6; }
+        .manual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+        .manual-item { padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #fcfefe; }
+        .manual-item h3 { margin: 0 0 8px; font-size: 15px; }
+        .manual-item p { margin: 0; color: var(--text); font-size: 13.5px; line-height: 1.65; }
+        .manual-item a { display: inline-block; margin-top: 11px; color: var(--teal); font-size: 13px; font-weight: 750; text-decoration: none; }
+        .manual-item a:hover { text-decoration: underline; }
+        .manual-tip { margin: 18px 0 0; padding: 13px 15px; border-radius: 10px; background: var(--teal-soft); color: #065f46; font-size: 13px; line-height: 1.6; }
+        @media (max-width: 640px) {
+            .manual-toggle-wrap { margin: -42px auto 42px; }
+            .manual-panel { padding: 18px; }
+            .manual-grid { grid-template-columns: 1fr; }
+            .manual-heading { flex-direction: column; }
+        }
+
         /* ---------- Footer ---------- */
         footer {
             border-top: 1px solid var(--line);
@@ -326,6 +360,90 @@
         <div class="insight"><strong>Automated insight:</strong> Revenue grew in 6 of 7 months, peaking in July. Margin is trending up.</div>
     </figure>
 </header>
+
+
+<!-- The user manual is hidden by default and opens when the visitor clicks the button. -->
+<section class="manual-toggle-wrap" aria-label="QuickSnap user manual">
+    <button class="manual-toggle" id="manualToggle" type="button" aria-expanded="false" aria-controls="userManual">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20M8 7h8M8 10h8"/>
+        </svg>
+        <span id="manualToggleText">Open QuickSnap User Manual</span>
+        <span id="manualToggleArrow" aria-hidden="true">▾</span>
+    </button>
+
+    <div class="manual-panel" id="userManual" hidden>
+        <div class="manual-heading">
+            <div>
+                <div class="how-label">QUICK GUIDE</div>
+                <h2>QuickSnap User Manual</h2>
+                <p>Follow these steps to turn your spreadsheet into clean data, useful charts, and a downloadable report.</p>
+            </div>
+        </div>
+
+        <div class="manual-grid">
+            <article class="manual-item">
+                <h3>1. Create an account or log in</h3>
+                <p>Sign up for a QuickSnap account or log in to access the data tools. Your account lets you work with your own active dataset.</p>
+                {% if request.user.is_authenticated %}<a href="{% url 'import_data' %}">Start importing →</a>{% else %}<a href="{% url 'signup' %}">Create an account →</a>{% endif %}
+            </article>
+            <article class="manual-item">
+                <h3>2. Import your dataset</h3>
+                <p>Open Import and upload a supported CSV or Excel file. Check that your file contains the columns and records you want to analyze.</p>
+                <a href="{% url 'import_data' %}">Go to Import →</a>
+            </article>
+            <article class="manual-item">
+                <h3>3. Clean your data</h3>
+                <p>Review the row and column counts, duplicate rows, and missing values. Remove duplicates or handle missing values before analyzing. If you continue without cleaning, results may be less reliable.</p>
+                <a href="{% url 'data_cleaning' %}">Go to Data Cleaning →</a>
+            </article>
+            <article class="manual-item">
+                <h3>4. Explore charts and insights</h3>
+                <p>Open Analysis, choose fields for your chart, and select a chart type. Use the recommended chart suggestions as a starting point, then adjust the fields and options to fit your question.</p>
+                <a href="{% url 'visualization' %}">Go to Analysis →</a>
+            </article>
+            <article class="manual-item">
+                <h3>5. Use the Pivot Table</h3>
+                <p>Arrange fields into rows, columns, and values, then choose an aggregation such as Sum, Count, or Average to summarize your data. The pivot table is for temporary analysis and is not added to the PDF report.</p>
+                <a href="{% url 'visualization' %}">Open Analysis →</a>
+            </article>
+            <article class="manual-item">
+                <h3>6. Build your report</h3>
+                <p>Add the charts you want to include to the report, review the selected items, and edit report text or findings when those options are available. Export the finished report as a PDF.</p>
+                <a href="{% url 'report_builder' %}">Go to Report Builder →</a>
+            </article>
+            <article class="manual-item">
+                <h3>7. View report history</h3>
+                <p>Open Report History to review reports that were saved previously, when that feature is available for your account.</p>
+                <a href="{% url 'report_history' %}">Go to Report History →</a>
+            </article>
+            <article class="manual-item">
+                <h3>Tips for better results</h3>
+                <p>Use clear column names, check for missing or duplicated records, choose chart fields that answer one question, and confirm the chart labels and values before creating a report.</p>
+            </article>
+        </div>
+        <p class="manual-tip"><strong>Remember:</strong> QuickSnap helps summarize and visualize your dataset. Always check the data and interpret the charts in context before using the results for decisions.</p>
+    </div>
+</section>
+
+<script>
+    // Toggle the manual open or closed when the button is clicked.
+    (function () {
+        const toggle = document.getElementById('manualToggle');
+        const panel = document.getElementById('userManual');
+        const label = document.getElementById('manualToggleText');
+        const arrow = document.getElementById('manualToggleArrow');
+
+        toggle.addEventListener('click', function () {
+            const willOpen = panel.hidden;
+            panel.hidden = !willOpen;
+            toggle.setAttribute('aria-expanded', String(willOpen));
+            label.textContent = willOpen ? 'Close QuickSnap User Manual' : 'Open QuickSnap User Manual';
+            arrow.textContent = willOpen ? '▴' : '▾';
+            if (willOpen) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    })();
+</script>
 
 <!-- ================= HOW IT WORKS ================= -->
 <section class="how">
